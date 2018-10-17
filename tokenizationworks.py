@@ -58,7 +58,7 @@ class ToTokenize:
         """
         # Raise TypeError if the input type is not string.
         if not isinstance(stream,str):
-            raise TypeError
+            raise(TypeError)
 
         # Raise ValueError if the input string is empty.
         if len(stream)==0:
@@ -106,10 +106,10 @@ class ToTokenize:
 
         # Raise TypeError if the input type is not string
         if not isinstance(stream,str):
-            raise TypeError
+            raise(TypeError)
 
         # Raise ValueError if the input string is empty.
-        if len(stream)==0:
+        if len(stream) == 0:
             return
 
         # Enumerate all the characters in stream.
@@ -171,43 +171,59 @@ class ToTokenize:
         We consider four types of tokens: alphabetical,
         digital, punctuation tokens
         and tokens consisting of one or more spaces.
-        The method yields a token and the srting representation
-        of the token. 
+        The method yields a type of the token and the srting representation
+        of the token.
         @param: a string
-        @yields: a token
+        @return: a token
         """
 
         # Raise TypeError if the input type is not string
-        if not isinstance(stream,str):
-            raise TypeError
+        if not isinstance(stream, str):
+            raise(TypeError)
 
-        # Returns empty list of tokens if the input string is empty.
-        if len(stream)==0:
+        # Raise ValueError if the input string is empty.
+        if len(stream) == 0:
             return
 
         # Enumerate all the characters in stream.
         for i,c in enumerate(stream):
-            
+
+            # Save the type of the current character to a variable 'curr_tp'
+            curr_tp = self.get_type(stream[i])
+
             # If a character is the begining of the whole stream
             # we save the index of the character to the variable 'start'.
-            if (i == 0):
+            if (i == 0) :
                 start = i
 
+                # Save the current character to a variable 'prev_tp'
+                # so on the next iteration we know the type of the previous
+                # character.
+                prev_tp = curr_tp
+                
             # If a type of the current character is not the same with the type
             # of the character previous to it
             # then we create a token and write the begining of the wordform
             # to the attribute 'start'
             # and the wordform -- a slice of the string from the 'start'
             # to the current character -- to the attribute 'word_form'.
-            elif ((self.get_type(stream[i]) != self.get_type(stream[i-1]))):
-                token= TokenWithType(start,stream[start:i],self.get_type(stream[start]))
-                                
+            elif (curr_tp != prev_tp):
+                token = TokenWithType(start, stream[start:i], prev_tp)
+
+
                 # Yield a current token.
                 yield token
                 # Write the index of the current character
                 # to the variable 'start'
-                start=i
-                
+                start = i
+
+
+                # Save the current character to a variable 'prev_tp'
+                # so on the next iteration we know the type of the previous
+                # character.
+                prev_tp = curr_tp
+
+            
         # Usually, a token is created and appended to the list of tokens
         # only if a type of the current character is not the same with the type
         # of the character previous to it
@@ -215,30 +231,33 @@ class ToTokenize:
         # have the same type then the token of the last wordform
         # is not created.
         # That's why we need to create it manually in the case bellow.
-        if self.get_type(stream[-1]) == self.get_type(stream[-2]):
-            token= TokenWithType(start,stream[start:],self.get_type(stream[start]))
+        if (i == len(stream)-1) and (curr_tp == prev_tp ):
+            token = TokenWithType(start, stream[start:], prev_tp)
 
             # Yield a current token.
             yield token
+
             # Write the index of the current character to the variable 'start'
-            start=i
-            
+            start = i
+
         # If a type of the current character is not the same with the type
         # of the character previous to it than only the last
         # character is yielded.
-        if self.get_type(stream[-1]) != self.get_type(stream[-2]):
-            token = TokenWithType(start, stream[-1], self.get_type(stream[start]))
-           
+        elif (i == len(stream)-1) and (curr_tp != prev_tp ):
+            token = TokenWithType(start, stream[-1], prev_tp)
             
             # Yield a current token.
             yield token
-            # Write the index of the current character to the variable 'start'
-            start=i
 
-a = ToTokenize()
-#print(a.tokenize(" name 'self' is not defined!"))
-#for i in (a.tokenize_with_generator("Usually, a token is created and appended to the list of tokens")):
-    #print(i)
-for i in (a.tokenize_with_types("name 'self' is not defined!cjjc,,abc123,,;")):
-    print(i)
+            # Write the index of the current character to the variable 'start'
+            start = i
+
+            
+if __name__ == '__main__':
+    a = ToTokenize()
+    #print(a.tokenize(" name 'self' is not defined!"))
+    #for i in (a.tokenize_with_generator("Usually, a token is created and appended to the list of tokens")):
+        #print(i)
+    for i in (a.tokenize_with_types("The method is needed to create tokens")):
+        print(i)
 
