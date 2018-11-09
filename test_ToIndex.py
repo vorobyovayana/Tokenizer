@@ -40,7 +40,7 @@ class ToIndex:
         
         db = dict(self.token.index("test_text"))
         files = os.listdir
-        extensions=[".dat", "dir", ".bak"]
+        extensions=[".dat", ".dir", ".bak"]
         file_presence= False
         for file in files:
             for extension in extensions:
@@ -56,7 +56,7 @@ class ToIndex:
         self.assertEqual(len(db), 3)
         self.assertEqual(ref['mama'], db['mama'])
         files = os.listdir
-        extensions=[".dat", "dir", ".bak"]
+        extensions=[".dat", ".dir", ".bak"]
         for file in files:
             for extension in extensions:
                 if file.endswith(extension):
@@ -69,7 +69,7 @@ class ToIndex:
         self.assertEqual(len(db), 4)
         self.assertEqual(ref['mama'], db['mama'])
         files = os.listdir
-        extensions=[".dat", "dir", ".bak"]
+        extensions=[".dat", ".dir", ".bak"]
         for file in files:
             for extension in extensions:
                 if file.endswith(extension):
