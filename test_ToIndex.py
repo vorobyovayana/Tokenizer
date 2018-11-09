@@ -58,7 +58,9 @@ class ToIndex:
         db = dict(self.token.index("test_text"))
         text_file.open( "test_text", 'w')
         text_file.write( "mama mila ramu")
-        ref_dict = {'mama':{'test_text':[0,4]}, 'mila': {'test_text':[5,9]}, 'ramu': {'test_text': [10, 14]}}
+        ref_dict = {'mama':{'test_text':[0,4]}, 'mila': {'test_text':[5,9]},
+                    'ramu': {'test_text': [10, 14]}
+        }
         self.assertEqual(len(db), 3)
         self.assertEqual(ref['mama'], db['mama'])
         files = os.listdir
@@ -74,7 +76,10 @@ class ToIndex:
         db = dict(self.token.index("test_text_not_unique"))
         text_file.open( "test_text", 'w')
         text_file.write( "mama mama mila ramu")
-        ref_dict= { 'mama': {'test_text_not_unique': [0, 4, 5, 9], 'mila': {'test_text_not_unique': [10, 14]}}, 'ramu': {'test_text_not_unique': [15, 19]}}
+        ref_dict= { 'mama': {'test_text_not_unique': [0, 4, 5, 9]},
+                    'mila': {'test_text_not_unique': [10, 14]},
+                    'ramu': {'test_text_not_unique': [15, 19]}
+        }
         self.assertEqual(len(db), 4)
         self.assertEqual(ref['mama'], db['mama'])
         files = os.listdir
