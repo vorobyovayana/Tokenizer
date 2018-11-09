@@ -1,5 +1,6 @@
 import unittest
 import shelve
+import os
 from indexation import ToIndex
 
 class ToIndex:
