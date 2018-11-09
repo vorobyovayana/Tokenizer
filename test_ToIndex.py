@@ -9,7 +9,7 @@ class ToIndex:
         Create an object of the class ToTokenize.
         """
         self.token = ToIndex()
-        text_file = open( "test_text.txt", "w")
+        text_file = open( "test_text.txt", "x")
 
 
     def test_filename_exists(self):
