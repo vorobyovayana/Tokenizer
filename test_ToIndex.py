@@ -6,9 +6,7 @@ from indexation import ToIndex
 class ToIndex(unittest.testcase):
 
     def setUp(self):
-        """
-        Create an object of the class ToTokenize.
-        """
+        
         self.indexes = ToIndex()
         self.text_file = open( "test_text.txt", "x")
 
