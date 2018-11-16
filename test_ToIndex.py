@@ -7,7 +7,7 @@ class ToIndex(unittest.TestCase):
 
     def setUp(self):
         """
-        This method creates an indexer, a position and a text file.
+        This method creates an indexer, an object of class Position and a text file.
         """
         self.indexer = ToIndex('database')
         self.position = Position()
