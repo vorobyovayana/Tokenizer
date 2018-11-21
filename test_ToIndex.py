@@ -108,6 +108,9 @@ class ToIndex(unittest.TestCase):
         self.assertEqual(ref_dict, db)
 
     def test_if_indexing_more_than_one_file(self):
+        """
+        Test that the method runs correctly if more than one text file is indexed.
+        """
         self.text_file.write('mama mila ramu')
         self.text_file.close()
         another_text_file = open("another_test_text.txt", "w")
