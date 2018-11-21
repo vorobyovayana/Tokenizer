@@ -17,16 +17,16 @@ class ToIndex(unittest.TestCase):
         """
         In this method we destroy the database and the file text.
         """
-        files = os.listdir
+        files = os.listdir()
         extensions = [".dat", ".dir", ".bak"]
         for single_file in files:
             if single_file == "database": 
-                    os.remove(single_file)
+                os.remove(single_file)
             else:        
                 for extension in extensions:
                     if single_file.startswith("database" + extension):                                                            
-                        os.remove(file + extension)
-        os.remove(text_file.txt)
+                        os.remove(single_file + extension)
+        os.remove("test_text.txt")
         
     
     def test_file_does_not_exists(self):
@@ -62,9 +62,10 @@ class ToIndex(unittest.TestCase):
         """
         Test that the database was created.
         """
-        self.text_file.write( "mama mila ramu")
-        self.text_file.close("test_text")
-        files = os.listdir
+        db = dict(self.indexer.index("test_text.txt"))
+        self.text_file.write("mama mila ramu")
+        self.text_file.close()
+        files = os.listdir()
         extensions = [".dat", ".dir", ".bak"]
         database_presence = False
         for single_file in files:
@@ -74,7 +75,7 @@ class ToIndex(unittest.TestCase):
                 for extension in extensions:
                     if single_file.startswith("database" + extension):
                         database_presence = True               
-        self.assertTrue(file_presence)
+        self.assertTrue(database_presence)
         
 
     def test_if_all_tokens_are_unique(self):
@@ -83,32 +84,29 @@ class ToIndex(unittest.TestCase):
         """
         self.text_file.write( "mama mila ramu")
         self.text_file.close("test_text")
-        db = dict(self.indexer.index("test_text"))               
-        ref_dict = {'mama' : {'test_text':[Position(0,4)]},
-                    'mila' : {'test_text':[Position(5,9)]},
-                    'ramu' : {'test_text': [Position(10,14)]}
+        db = dict(self.indexer.index("test_text.txt"))               
+        ref_dict = {'mama' : {'test_text.txt':[Position(0,4)]},
+                    'mila' : {'test_text.txt':[Position(5,9)]},
+                    'ramu' : {'test_text.txt': [Position(10,14)]}
                    }
         self.assertEqual(len(db), 3)
-        self.assertEqual(ref_dict['mama'], db['mama'])
-        self.assertEqual(ref_dict['mila'], db['mila'])
-        self.assertEqual(ref_dict['ramu'], db['ramu'])
+        self.assertEqual(ref_dict, db)
+        
 
     def test_if_not_all_tokens_are_unique(self):
         """
         Test that indexer runs correctly if some tokens occur more than once.
         """
-        self.text_file.write( "mama mama mila ramu")
-        self.text_file.close("test_text")
+        self.text_file.write("mama mama mila ramu")
+        self.text_file.close()
         db = dict(self.indexer.index("test_text"))       
-        ref_dict = {'mama': {'test_text': [Position(0,4), Position(5,9)]},
-                    'mila': {'test_text': [Position(10,14)]},
-                    'ramu': {'test_text': [Position(15,19)]}
+        ref_dict = {'mama': {'test_text.txt': [Position(0,4), Position(5,9)]},
+                    'mila': {'test_text.txt': [Position(10,14)]},
+                    'ramu': {'test_text.txt': [Position(15,19)]}
                     }
         self.assertEqual(len(db), 4)
-        self.assertEqual(ref_dict['mama'], db['mama'])
-        self.assertEqual(ref_dict['mila'], db['mila'])
-        self.assertEqual(ref_dict['ramu'], db['ramu'])
-   
+        self.assertEqual(ref_dict, db)
+        
 
 
 if __name__ == '__main__':
