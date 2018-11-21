@@ -99,16 +99,38 @@ class ToIndex(unittest.TestCase):
         """
         self.text_file.write("mama mama mila ramu")
         self.text_file.close()
-        db = dict(self.indexer.index("test_text"))       
+        db = dict(self.indexer.index("test_text.txt"))       
         ref_dict = {'mama': {'test_text.txt': [Position(0,4), Position(5,9)]},
                     'mila': {'test_text.txt': [Position(10,14)]},
                     'ramu': {'test_text.txt': [Position(15,19)]}
                     }
         self.assertEqual(len(db), 4)
         self.assertEqual(ref_dict, db)
-        
+
+    def test_if_indexing_more_than_one_file(self):
+        self.text_file.write('mama mila ramu')
+        self.text_file.close()
+        another_text_file = open("another_test_text.txt", "w")
+        another_text_file.write('mama ne mila ramu')
+        another_text_file.close()
+        self.indexer.index("test_text.txt")
+        self.indexer.index("another_test_text.txt")
+        files = os.listdir()
+        extensions = [".dat", ".dir", ".bak"]
+        for single_file in files:
+            if single_file == "database":
+                db = shelve.open(single_file)
+            else:
+                for extension in extensions:
+                    if single_file.startswith("database" + extension):
+                        db = shelve.open(single_file)
+        ref_dict = {'mama': {'test_text.txt': [Position(0,4)], 'another_test_text.txt': [Position(0,4)]},
+                    'ne': {'another_test_text.txt': [Position(5,7)]}
+                    'mila': {'test_text.txt': [Position(5,9)], 'another_test_text.txt': [Position(8,12)]},
+                    'ramu': {'test_text.txt': [Position(10,14)], 'another_test_text.txt': [Position(13,17)]}
+                    }
+        self.assertEqual(ref_dict, dict(db))
 
 
 if __name__ == '__main__':
     unittest.main()
-
