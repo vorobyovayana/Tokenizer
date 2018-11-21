@@ -8,14 +8,14 @@ class ToIndex(unittest.TestCase):
 
     def setUp(self):
         """
-        In this method we create an indexer, a position and a text file.
+        In this method we create an indexer and a text file.
         """
         self.indexer = ToIndex('database')
         self.text_file = open("test_text.txt", "w")
   
     def tearDown(self):
         """
-        In this method we destroy database and file text.
+        In this method we destroy the database and the file text.
         """
         files = os.listdir
         extensions = [".dat", ".dir", ".bak"]
@@ -64,16 +64,16 @@ class ToIndex(unittest.TestCase):
         """
         self.text_file.write( "mama mila ramu")
         self.text_file.close("test_text")
-        db = dict(self.indexer.index("test_text"))
         files = os.listdir
         extensions = [".dat", ".dir", ".bak"]
         database_presence = False
         for single_file in files:
-            for extension in extensions:
-                if single_file.startswith("database" + extension):
-                    database_presence = True
-                elif single_file == "database":
-                    database_presence = True
+            if single_file == "database":
+                database_presence = True
+            else:
+                for extension in extensions:
+                    if single_file.startswith("database" + extension):
+                        database_presence = True               
         self.assertTrue(file_presence)
         
 
@@ -84,13 +84,14 @@ class ToIndex(unittest.TestCase):
         self.text_file.write( "mama mila ramu")
         self.text_file.close("test_text")
         db = dict(self.indexer.index("test_text"))               
-        ref_dict = {
-            'mama' : {'test_text':[Position(0,4)]},
-            'mila' : {'test_text':[Position(5,9)]},
-            'ramu' : {'test_text': [Position(10,14)]}
-        }
+        ref_dict = {'mama' : {'test_text':[Position(0,4)]},
+                    'mila' : {'test_text':[Position(5,9)]},
+                    'ramu' : {'test_text': [Position(10,14)]}
+                   }
         self.assertEqual(len(db), 3)
-        self.assertEqual(ref['mama'], db['mama'])
+        self.assertEqual(ref_dict['mama'], db['mama'])
+        self.assertEqual(ref_dict['mila'], db['mila'])
+        self.assertEqual(ref_dict['ramu'], db['ramu'])
 
     def test_if_not_all_tokens_are_unique(self):
         """
@@ -99,13 +100,14 @@ class ToIndex(unittest.TestCase):
         self.text_file.write( "mama mama mila ramu")
         self.text_file.close("test_text")
         db = dict(self.indexer.index("test_text"))       
-        ref_dict = {
-            'mama': {'test_text': [Position(0,4), Position(5,9)]},
-            'mila': {'test_text': [Position(10,14)]},
-            'ramu': {'test_text': [Position(15,19)]}
-        }
+        ref_dict = {'mama': {'test_text': [Position(0,4), Position(5,9)]},
+                    'mila': {'test_text': [Position(10,14)]},
+                    'ramu': {'test_text': [Position(15,19)]}
+                    }
         self.assertEqual(len(db), 4)
-        self.assertEqual(ref['mama'], db['mama'])
+        self.assertEqual(ref_dict['mama'], db['mama'])
+        self.assertEqual(ref_dict['mila'], db['mila'])
+        self.assertEqual(ref_dict['ramu'], db['ramu'])
    
 
 
