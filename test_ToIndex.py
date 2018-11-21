@@ -3,19 +3,19 @@ import shelve
 import os
 from indexation import ToIndex
 
+
 class ToIndex(unittest.TestCase):
 
     def setUp(self):
         """
-        This method creates an indexer, an object of class Position and a text file.
+        In this method we create an indexer, a position and a text file.
         """
         self.indexer = ToIndex('database')
-        self.position = Position()
         self.text_file = open("test_text.txt", "w")
   
     def tearDown(self):
         """
-        This method destroys database and file text.
+        In this method we destroy database and file text.
         """
         files = os.listdir
         extensions = [".dat", ".dir", ".bak"]
@@ -85,9 +85,9 @@ class ToIndex(unittest.TestCase):
         self.text_file.close("test_text")
         db = dict(self.indexer.index("test_text"))               
         ref_dict = {
-        'mama' : {'test_text':[self.position.start,self.position.end]},
-        'mila' : {'test_text':[self.position.start,self.position.end]},
-        'ramu' : {'test_text': [self.position.start, self.position.end14]}
+            'mama' : {'test_text':[Position(0,4)]},
+            'mila' : {'test_text':[Position(5,9)]},
+            'ramu' : {'test_text': [Position(10,14)]}
         }
         self.assertEqual(len(db), 3)
         self.assertEqual(ref['mama'], db['mama'])
@@ -100,9 +100,9 @@ class ToIndex(unittest.TestCase):
         self.text_file.close("test_text")
         db = dict(self.indexer.index("test_text"))       
         ref_dict = {
-        'mama': {'test_text': [self.position.start, self.position.end, self.position.start, self.position.end]},
-        'mila': {'test_text': [self.position.start, self.position.end]},
-        'ramu': {'test_text': [self.position.start, self.position.end]}
+            'mama': {'test_text': [Position(0,4), Position(5,9)]},
+            'mila': {'test_text': [Position(10,14)]},
+            'ramu': {'test_text': [Position(15,19)]}
         }
         self.assertEqual(len(db), 4)
         self.assertEqual(ref['mama'], db['mama'])
@@ -111,3 +111,4 @@ class ToIndex(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
