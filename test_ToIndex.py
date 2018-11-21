@@ -130,6 +130,7 @@ class ToIndex(unittest.TestCase):
                     'ramu': {'test_text.txt': [Position(10,14)], 'another_test_text.txt': [Position(13,17)]}
                     }
         self.assertEqual(ref_dict, dict(db))
+        os.remove('another_text_file.txt')
 
 
 if __name__ == '__main__':
