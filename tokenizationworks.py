@@ -3,6 +3,7 @@ This module was made to chunk a string into wordforms.
 It consists of two classes: class Token and class ToTokenize.
 """
 import unicodedata
+import shelve
 
 
 class Token:
@@ -42,7 +43,7 @@ class TokenWithType(Token):
         """
         This method creates a string representation of a token.
         """
-        return self.tp+ ", " + "'"+self.wordform + "'"
+        return self.tp + ", " + "'"+self.wordform + "'"
 
 
 class ToTokenize:
@@ -252,12 +253,25 @@ class ToTokenize:
             # Write the index of the current character to the variable 'start'
             start = i
 
+    def tokenize_reduced(self, stream):
+        """"
+        This method is used to return only alphabetic and digital characters.
+        @param: a string
+        @return: a token
+        """
+        for token in (self.tokenize_with_types(stream)):
+            if token.tp == 'a' or token.tp == 'd':
+                yield token
+
+
             
 if __name__ == '__main__':
     a = ToTokenize()
     #print(a.tokenize(" name 'self' is not defined!"))
     #for i in (a.tokenize_with_generator("Usually, a token is created and appended to the list of tokens")):
         #print(i)
-    for i in (a.tokenize_with_types("The method is needed to create tokens")):
-        print(i)
-
+    #for i in (a.tokenize_with_types("The method is needed e356to create tokens")):
+        #print(i)
+    
+    for i in ((a.tokenize_reduced("E123tokeni   zation.py78655a"))):
+        print(i.wordform)  
