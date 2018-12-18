@@ -1,46 +1,61 @@
 from tokenization import ToTokenize
+from tokenization import TokenWithType
 import shelve
+import os
 
-class Position(self, start, length):
-    def __init__(self):
+class Position:
+    def __init__(self, start, end):
         self.start = start
-        self.end = start + length
-        self.tokenizer = ToTokenize()
-
+        self.end = end
+        
     def __repr__(self):
         
-        return self.start + self.end
+        return str(self.start) + ', ' + str(self.end)
+
+    def __eq__(self, obj):
+
+        return self.start == obj.start and self.end == obj.end
+    
 
 class ToIndex:
+    
+    def __init__(self, db_name):
+
+        self.db = shelve.open(db_name, writeback=True)
+
+    def __del__(self):
+
+        self.db.close()
                
     def index(self, file_name):
-        
+        #self.db.clear()
         # Raise TypeError if the input type is not string      
-        if not isinstance(text_file, str):
+        if not isinstance(file_name, str):
             raise(TypeError)
+
+        files = os.listdir()
+        if file_name not in files:
+            raise(ValueError)
         
+        tokenizer = ToTokenize()
         # Open file
         text_file = open(file_name, 'r')
         # Read file and save as a string
         text_string = text_file.read()
-        # Tokenize the string and write it in the variable 'tokens'.
-        tokens = self.tokenizer.tokenize_reduced(text_string)
-        # Open database with name 'database'
-        db = shelve.open('database')
-
+        text_file.close()
+        tokens = tokenizer.tokenize_reduced(text_string)
         for token in tokens:
-            # Create an object of class Position for a current token
-            position = Position(token.start, len(token.wordform))
-            # If the token is not in the database, add it.
-            db.setdefault(token, {})
-            # Write the dictionary 'db[token]' to a variable 'file_pos_dict'
-            file_pos_dict = db[token]
-            # If the filename is not in the dictionary, add it
-            file_pos_dict.setdefault(file_name, [])
-            # Add to the end of the list of positions position of the current token
-            file_pos_dict[file_name].append(position)
-        db.close()
-                   
+            position = Position(token.start, token.start + len(token.wordform))
+            self.db.setdefault(token.wordform, {}).setdefault(file_name, []).append(position)
+
+        
+        self.db.sync()
+        
+        
+
+                
+                    
 if __name__ == '__main__':
-    a = ToIndex()
-a.index("text.txt")
+    a = ToIndex('database')
+    a.index("text.txt")
+    a.index("text2.txt")
