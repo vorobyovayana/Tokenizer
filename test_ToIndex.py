@@ -10,15 +10,15 @@ class TestToIndex(unittest.TestCase):
         """
         In this method we create an indexer.
         """
-        
         self.indexer = ToIndex('database')
         self.maxDiff = None
        
   
     def tearDown(self):
         """
-        In this method we destroy the database and the file text.
+        In this method we delete the indexer and destroy the database.
         """
+        del self.indexer
         files = os.listdir()
 
         for single_file in files:
@@ -121,6 +121,9 @@ class TestToIndex(unittest.TestCase):
 
         
     def test_if_indexing_more_than_one_file(self):
+        """
+        Test that indexer runs correctly if two files are being indexed.
+        """
         text_file = open('test_text.txt', 'w')
         text_file.write('mama mila ramu')
         text_file.close()
