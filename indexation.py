@@ -127,6 +127,7 @@ class ToIndex:
         files = os.listdir()
         if file_name not in files:
             raise(ValueError)
+
         
         # Create an object of ToTokenize.
         tokenizer = ToTokenize()
@@ -137,20 +138,22 @@ class ToIndex:
             #Tokenize each string of the file and 
             # save resulting tokens to the list 'tokens'
             tokens = tokenizer.tokenize_reduced(string)
+        
+        
+            for token in tokens:
+                # For each token in the list create an object of Position.
+                position = PositionByString(token.start, token.start + len(token.wordform), num)
+            
+                # Use method '.setdefault()' to write the token, its file_name
+                # and position to the database.
+                self.db.setdefault(token.wordform, {}).setdefault(file_name, []).append(position)
+                
         # Close the file.
         text_file.close()
-        
-        for token in tokens:
-            # For each token in the list create an object of Position.
-            position = PositionByString(token.start, token.start + len(token.wordform), num)
-            
-            # Use method '.setdefault()' to write the token, its file_name
-            # and position to the database.
-            self.db.setdefault(token.wordform, {}).setdefault(file_name, []).append(position)
-
         # Use '.sync()' to save the database.
         self.db.sync()
         
+        print(dict(self.db))
 
 
 
