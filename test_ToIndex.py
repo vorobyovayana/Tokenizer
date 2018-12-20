@@ -206,7 +206,7 @@ class TestToIndexByString(unittest.TestCase):
         self.assertTrue(database_presence)
         os.remove("test_text.txt")
 
-    def test_the_program_runs_ok(self):
+    def test_if_indexing_two_files(self):
         text_file = open('test_text.txt', 'w')
         text_file.write('mama мыла ramu')
         text_file.close()
@@ -226,7 +226,25 @@ class TestToIndexByString(unittest.TestCase):
         self.assertEqual(ref_dict, dict(db))
         os.remove("test_text.txt")
         os.remove("another_test_text.txt")
-        
 
+    def test_the_program_runs_ok_with_several_lines(self):
+        text_file = open('test_text.txt', 'w')
+        text_file.write('mama мыла ramu')
+        text_file.write("\n")
+        text_file.write('da')
+        text_file.write("\n")
+        text_file.write("net")
+        text_file.close()
+        self.indexer.index_by_string('test_text.txt')
+        db = shelve.open('database')
+        ref_dict = {'mama': {'test_text.txt': [PositionByString(0,4,0)]},
+                    'мыла': {'test_text.txt': [PositionByString(5,9,0)]},
+                    'ramu': {'test_text.txt': [PositionByString(10,14,0)]},
+                    'da': {'test_text.txt': [PositionByString(0,2,1)]},
+                    'net': {'test_text.txt': [PositionByString(0,3,2)]}
+                    }
+
+        os.remove("test_text.txt")
+                    
 if __name__ == '__main__':
     unittest.main()
