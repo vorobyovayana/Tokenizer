@@ -114,30 +114,43 @@ class ToIndex:
         self.db.sync()
 
     def index_by_string(self, file_name):
+        """
+        This method index a file by strings.
+        param@: the name of the file
+        """
+
         # Raise TypeError if the input type is not string      
         if not isinstance(file_name, str):
             raise(TypeError)
+        
         # Raise ValuError if filename doesn't exist.
         files = os.listdir()
         if file_name not in files:
             raise(ValueError)
+        
         # Create an object of ToTokenize.
         tokenizer = ToTokenize()
         # Open file
         text_file = open(file_name, 'r')
-        
+        # Read the file by string
         for num, string in enumerate(text_file):
-           tokens = tokenizer.tokenize_reduced(string)
-        text_file.close()   
+            #Tokenize each string of the file and 
+            # save resulting tokens to the list 'tokens'
+            tokens = tokenizer.tokenize_reduced(string)
+        # Close the file.
+        text_file.close()
+        
         for token in tokens:
             # For each token in the list create an object of Position.
             position = PositionByString(token.start, token.start + len(token.wordform), num)
+            
             # Use method '.setdefault()' to write the token, its file_name
             # and position to the database.
             self.db.setdefault(token.wordform, {}).setdefault(file_name, []).append(position)
-        print(self.db['mama'])    
+
         # Use '.sync()' to save the database.
         self.db.sync()
+        
 
 
 
