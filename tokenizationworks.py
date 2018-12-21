@@ -164,6 +164,8 @@ class ToTokenize:
         # into the variable 'tp'.
         elif unicodedata.category(i).startswith('P'):
             tp='p'
+        else:
+            tp = 'o'
         return tp
 
     def tokenize_with_types(self, stream):
