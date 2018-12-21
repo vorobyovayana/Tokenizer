@@ -3,7 +3,7 @@ import shelve
 import os
 from indexation import ToIndex
 from indexation import Position
-from indexation import PositionByString
+from indexation import PositionByLine
 
 class TestToIndex(unittest.TestCase):
 
@@ -175,7 +175,7 @@ class TestToIndexByString(unittest.TestCase):
         If the file does not exist raise ValueError.
         """        
         with self.assertRaises(ValueError):
-            self.indexer.index_by_string("nofile.txt")
+            self.indexer.index_by_line("nofile.txt")
          
 
     def test_input_is_a_number(self):
@@ -183,7 +183,7 @@ class TestToIndexByString(unittest.TestCase):
         If the input is a number raise TypeError.
         """        
         with self.assertRaises(TypeError):
-            self.indexer.index_by_string(42)
+            self.indexer.index_by_line(42)
 
     def test_db_was_created(self):
         """
@@ -194,7 +194,7 @@ class TestToIndexByString(unittest.TestCase):
         text_file = open("test_text.txt", "w")
         text_file.write("mama mila ramu")
         text_file.close()
-        self.indexer.index_by_string('test_text.txt')
+        self.indexer.index_by_line('test_text.txt')
         files = os.listdir()
         database_presence = False
         for single_file in files:
@@ -210,17 +210,17 @@ class TestToIndexByString(unittest.TestCase):
         text_file = open('test_text.txt', 'w')
         text_file.write('mama мыла ramu')
         text_file.close()
-        self.indexer.index_by_string('test_text.txt')
+        self.indexer.index_by_line('test_text.txt')
         another_text_file = open("another_test_text.txt", 'w')
         another_text_file.write('mama')
         another_text_file.close()
-        self.indexer.index_by_string('another_test_text.txt')
+        self.indexer.index_by_line('another_test_text.txt')
         db = shelve.open('database')
         ref_dict = {
-                    'mama': {'another_test_text.txt': [PositionByString(0,4,0)],
-                             'test_text.txt': [PositionByString(0,4,0)]},
-                    'мыла': {'test_text.txt': [PositionByString(5,9,0)]},
-                    'ramu': {'test_text.txt': [PositionByString(10,14,0)]}
+                    'mama': {'another_test_text.txt': [PositionByLine(0,4,0)],
+                             'test_text.txt': [PositionByLine(0,4,0)]},
+                    'мыла': {'test_text.txt': [PositionByLine(5,9,0)]},
+                    'ramu': {'test_text.txt': [PositionByLine(10,14,0)]}
                     }
         
         self.assertEqual(ref_dict, dict(db))
@@ -235,17 +235,16 @@ class TestToIndexByString(unittest.TestCase):
         text_file.write("\n")
         text_file.write("net")
         text_file.close()
-        self.indexer.index_by_string('test_text.txt')
+        self.indexer.index_by_line('test_text.txt')
         db = shelve.open('database')
-        ref_dict = {'mama': {'test_text.txt': [PositionByString(0,4,0)]},
-                    'мыла': {'test_text.txt': [PositionByString(5,9,0)]},
-                    'ramu': {'test_text.txt': [PositionByString(10,14,0)]},
-                    'da': {'test_text.txt': [PositionByString(0,2,1)]},
-                    'net': {'test_text.txt': [PositionByString(0,3,2)]}
+        ref_dict = {'mama': {'test_text.txt': [PositionByLine(0,4,0)]},
+                    'мыла': {'test_text.txt': [PositionByLine(5,9,0)]},
+                    'ramu': {'test_text.txt': [PositionByLine(10,14,0)]},
+                    'da': {'test_text.txt': [PositionByLine(0,2,1)]},
+                    'net': {'test_text.txt': [PositionByLine(0,3,2)]}
                     }
 
         os.remove("test_text.txt")
                     
 if __name__ == '__main__':
     unittest.main()
-
