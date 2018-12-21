@@ -34,30 +34,31 @@ class Position:
         """
         return self.start == obj.start and self.end == obj.end
 
-class PositionByString:
+class PositionByLine:
     
-     def __init__(self, start, end, string):
+     def __init__(self, start, end, line):
         """
         The method is needed to create positions of tokens --
         objects that have two attributes:
-        @param: the start of the token
-        @param: the end of the token
+        @param: 'self.start' - the start of the token
+        @param: 'self.end' - the end of the token
+        @param: 'self.line' - the number of the line
         """
         self.start = start
         self.end = end
-        self.string = string
+        self.line = line
 
      def __repr__(self):
         """
         This method creates a string representation of a position.
         """
-        return str(self.start) + ', ' + str(self.end) + ',' + str(self.string)
+        return str(self.start) + ', ' + str(self.end) + ',' + str(self.line)
 
      def __eq__(self, obj):
         """
         This method is needed to compare the objects of class Position.
         """
-        return (self.start == obj.start and self.end == obj.end) and self.string == obj.string
+        return self.start == obj.start and self.end == obj.end and self.line == obj.line
     
 
 class ToIndex:
@@ -113,7 +114,7 @@ class ToIndex:
         # Use '.sync()' to save the database.
         self.db.sync()
 
-    def index_by_string(self, file_name):
+    def index_by_line(self, file_name):
         """
         This method index a file by strings.
         param@: the name of the file
@@ -133,7 +134,7 @@ class ToIndex:
         tokenizer = ToTokenize()
         # Open file
         text_file = open(file_name, 'r')
-        # Read the file by string
+        # Read the file by line
         for num, string in enumerate(text_file):
             #Tokenize each string of the file and 
             # save resulting tokens to the list 'tokens'
@@ -142,7 +143,7 @@ class ToIndex:
         
             for token in tokens:
                 # For each token in the list create an object of Position.
-                position = PositionByString(token.start, token.start + len(token.wordform), num)
+                position = PositionByLine(token.start, token.start + len(token.wordform), num)
             
                 # Use method '.setdefault()' to write the token, its file_name
                 # and position to the database.
@@ -161,6 +162,6 @@ class ToIndex:
                     
 if __name__ == '__main__':
     a = ToIndex('database')
-    a.index_by_string("text.txt")
+    a.index_by_line("text.txt")
     #a.index("text.txt")
     #a.index("text2.txt")
