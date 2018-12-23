@@ -1,11 +1,15 @@
+'''
+The module allows to search through documents given one or multiple queries.
+'''
 import shelve
 import os
 from indexation import PositionByLine
 from tokenization import ToTokenize
 from tokenization import TokenWithType
+
 class SearchEngine:
     '''
-    The module allows to search through documents given one or multiple queries.
+    The class produces search. It consists of two methods: search() and multi_search().
     '''
 
     def __init__(self, db_name):
@@ -22,6 +26,9 @@ class SearchEngine:
         self.db.close()
         
     def search(self, query):
+        '''
+        This method produced search through documents given one-word query.
+        '''
         # Raise TypeError if the input type is not string      
         if not isinstance(query, str):
             raise TypeError
@@ -39,7 +46,9 @@ class SearchEngine:
         return self.db[query]
 
     def multi_search(self, query):
-        
+        '''
+        This method produced search through documents given multi-word query.
+        '''
         # Raise TypeError if the input type is not string 
         if not isinstance(query, str):
             raise TypeError
