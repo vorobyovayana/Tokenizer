@@ -3,6 +3,7 @@ import os
 import unittest
 from search_engine import SearchEngine
 from indexation import ToIndex
+from indexation import PositionByLine
 
 class TestSearchEngine(unittest.TestCase):
 
@@ -66,7 +67,8 @@ class TestSearchEngine(unittest.TestCase):
         and one file in the database.
         '''
         search_res = self.search_eng.search('мыла')
-        self.assertEqual({'test_text.txt': [5, 9, 0]}, search_res)
+        ref_dict = {'test_text.txt': [5, 9, 0]}
+        self.assertEqual(ref_dict, search_res)
         
 class MultiSearchEngine(unittest.TestCase):
     
@@ -82,6 +84,11 @@ class MultiSearchEngine(unittest.TestCase):
         text.write('Ах, не говорите мне про Австрию! \
                     Я ничего не понимаю, может быть')
         text.close()
+        another_text = open('another_test_text.txt', 'w')
+        another_text.write('но Австрия никогда не хотела и не хочет войны.\
+                            Она предает нас')
+        another_text.close()
+        indexer.index_by_line('another_test_text.txt')
         indexer.index_by_line('test_text.txt')
         del indexer
         self.search_eng = SearchEngine('database')
@@ -101,7 +108,7 @@ class MultiSearchEngine(unittest.TestCase):
                 if single_file.startswith('database.'):                                                            
                     os.remove(single_file)
         os.remove('test_text.txt')
-    
+        os.remove('another_test_text.txt')
     def test_empty_query(self):
         '''
         Test that ValueError is raised if the query is an empty string.
@@ -124,18 +131,23 @@ class MultiSearchEngine(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.search_eng.search(42)
             
-    def test_program_runs_okay(self):
+    def test_program_runs_okay_with_one_word_query(self):
+        '''
+        Test that program runs as expected given there is one word
+        in the query and two files in the database.
+        '''
+
+        search_res = self.search_eng.search('Австрия')
+        ref_dict = {'test_text.txt': [24, 31, 0], 'another_test_text.txt': [3, 10, 0]}
+        self.assertEqual(ref_dict, search_res)
+
+    def test_program_runs_okay_with_several_word_query(self):
         '''
         Test that program runs as expected given there are two words
-        in the query and two files in tha database.
+        in the query and two files in the database.
         '''
-        another_text = open('another_test_text.txt', 'w')
-        another_text.write('но Австрия никогда не хотела и не хочет войны.\
-                            Она предает нас')
-        another_text.close()
-        search_res = self.search_eng.search('Австрия')
-        ref_dict = {'test_text.txt': [24,31],
-                    'another_test_text.txt': [3,10]}
+        search_res = self.search_eng.search('про Австрию')
+        ref_dict = {'test_text.txt': [20, 23, 0, 24, 31, 0]}
         self.assertEqual(ref_dict, search_res)
 
 if __name__ == '__main__':
