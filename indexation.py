@@ -36,7 +36,7 @@ class Position:
 
 class PositionByLine:
     
-     def __init__(self, start, end, line):
+    def __init__(self, start, end, line):
         """
         The method is needed to create positions of tokens --
         objects that have two attributes:
@@ -48,17 +48,30 @@ class PositionByLine:
         self.end = end
         self.line = line
 
-     def __repr__(self):
+    def __repr__(self):
         """
         This method creates a string representation of a position.
         """
-        return str(self.start) + ', ' + str(self.end) + ',' + str(self.line)
+        return "(" + str(self.start) + ', ' + str(self.end) + ', ' + str(self.line) + ")"
 
-     def __eq__(self, obj):
+    def __eq__(self, obj):
         """
         This method is needed to compare the objects of class Position.
         """
         return self.start == obj.start and self.end == obj.end and self.line == obj.line
+
+    def __lt__(self, obj):
+        """
+        We need this method to sort objects of class PositionByLine.
+        """
+        less = False
+        if self.line < obj.line:
+            less = True
+        if self.line == obj.line:
+            if self.start < obj.line:
+                less = True
+        return less
+        
     
 
 class ToIndex:
@@ -154,7 +167,7 @@ class ToIndex:
         # Use '.sync()' to save the database.
         self.db.sync()
         
-        print(dict(self.db))
+        
 
 
 
@@ -162,6 +175,12 @@ class ToIndex:
                     
 if __name__ == '__main__':
     a = ToIndex('database')
-    a.index_by_line("text.txt")
+    a.index_by_line("tolstoy1.txt")
+    #a.index_by_line("tolstoy2.txt")
+    #a.index_by_line("tolstoy3.txt")
+    #a.index_by_line("tolstoy4.txt")
+    
+    db= shelve.open('database')
+    print(db['Анна'])
     #a.index("text.txt")
     #a.index("text2.txt")
