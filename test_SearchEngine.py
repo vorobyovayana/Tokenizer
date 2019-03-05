@@ -85,12 +85,16 @@ class MultiSearchEngine(unittest.TestCase):
                     Я ничего не понимаю, может быть')
         text.close()
         another_text = open('another_test_text.txt', 'w')
-        another_text.write('но Австрия никогда не хотела и не хочет войны.\
+        another_text.write('но Ах Австрия никогда не хотела и не хочет войны.\
                             Она предает нас')
         another_text.close()
-        indexer.index_by_line('another_test_text.txt')
+        
+        
+        
         indexer.index_by_line('test_text.txt')
+        indexer.index_by_line('another_test_text.txt')
         del indexer
+        
         self.search_eng = SearchEngine('database')
     
     def tearDown(self):
@@ -98,6 +102,7 @@ class MultiSearchEngine(unittest.TestCase):
         In this method we destroy an object of SearchEngine()
         and delete 'database'.
         '''
+        
         del self.search_eng
         files = os.listdir()
         for single_file in files:
@@ -136,9 +141,11 @@ class MultiSearchEngine(unittest.TestCase):
         Test that program runs as expected given there is one word
         in the query and two files in the database.
         '''
-
-        search_res = self.search_eng.multi_search('Австрия')
-        ref_dict = { 'another_test_text.txt': [PositionByLine(3, 10, 0)]}
+        
+        search_res = self.search_eng.search('Ах')
+        ref_dict = {'test_text.txt': [PositionByLine(0, 2, 0)],
+                    'another_test_text.txt': [PositionByLine(3, 5, 0)]}
+        
         self.assertEqual(ref_dict, search_res)
 
     def test_program_runs_okay_with_several_word_query(self):
@@ -146,6 +153,7 @@ class MultiSearchEngine(unittest.TestCase):
         Test that program runs as expected given there are two words
         in the query and two files in the database.
         '''
+       
         search_res = self.search_eng.multi_search('про Австрию')
         ref_dict = {'test_text.txt': [PositionByLine(20, 23, 0), PositionByLine(24, 31, 0)]}
         self.assertEqual(ref_dict, search_res)
@@ -185,22 +193,14 @@ class ReturnContextWindow(unittest.TestCase):
         os.remove('test_text.txt')
 
     def test_wrong_input(self):
-        if self.search_eng.get_context_window(""):
+        if self.search_eng(""):
             return {}
         with self.assertRaises(TypeError):
             self.search_eng.search(42)
         with self.assertRaises(TypeError):
             self.search_eng.search((1,2,3))
-            
-    def test_program_runs_okay(self):
-
-        search_res = self.search_eng.get_context_window('про Австрию')
-                                            
 
     
 
 if __name__ == '__main__':
     unittest.main()
-        
-
-        
