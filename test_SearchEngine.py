@@ -5,6 +5,7 @@ from search_engine import SearchEngine
 from indexation import ToIndex
 from indexation import PositionByLine
 
+
 class TestSearchEngine(unittest.TestCase):
 
     def setUp(self):
@@ -70,7 +71,7 @@ class TestSearchEngine(unittest.TestCase):
         ref_dict = {'test_text.txt': [PositionByLine(5, 9, 0)]}
         self.assertEqual(ref_dict, search_res)
         
-class MultiSearchEngine(unittest.TestCase):
+class TestMultiSearchEngine(unittest.TestCase):
     
     def setUp(self):
         '''
@@ -88,9 +89,7 @@ class MultiSearchEngine(unittest.TestCase):
         another_text.write('но Ах Австрия никогда не хотела и не хочет войны.\
                             Она предает нас')
         another_text.close()
-        
-        
-        
+
         indexer.index_by_line('test_text.txt')
         indexer.index_by_line('another_test_text.txt')
         del indexer
@@ -114,6 +113,7 @@ class MultiSearchEngine(unittest.TestCase):
                     os.remove(single_file)
         os.remove('test_text.txt')
         os.remove('another_test_text.txt')
+        
     def test_empty_query(self):
         '''
         Test that ValueError is raised if the query is an empty string.
@@ -159,48 +159,8 @@ class MultiSearchEngine(unittest.TestCase):
         self.assertEqual(ref_dict, search_res)
 
 
-class ReturnContextWindow(unittest.TestCase):
 
-    def setUp(self):
-        '''
-        In this method we create an indexer, create a text file,
-        index it, then delete the file and the indexer.
-        Then create an object of SearchEngine()
-        '''
-        indexer = ToIndex('database')
-        self.maxDiff = None
-        text = open('test_text.txt', 'w')
-        text.write('Ах, не говорите мне про Австрию! Я ничего не понимаю, может быть')
-        text.close()
-        indexer.index_by_line('test_text.txt')
-        del indexer
-        self.search_eng = SearchEngine('database')
-    
-    def tearDown(self):
-        '''
-        In this method we destroy an object of SearchEngine()
-        and delete 'database'.
-        '''
-        del self.search_eng
-        files = os.listdir()
-        for single_file in files:
-            if single_file == "database": 
-                os.remove(single_file)
-            else:        
-
-                if single_file.startswith('database.'):                                                            
-                    os.remove(single_file)
-        os.remove('test_text.txt')
-
-    def test_wrong_input(self):
-        if self.search_eng(""):
-            return {}
-        with self.assertRaises(TypeError):
-            self.search_eng.search(42)
-        with self.assertRaises(TypeError):
-            self.search_eng.search((1,2,3))
-
-    
 
 if __name__ == '__main__':
     unittest.main()
+    
