@@ -1,8 +1,13 @@
+'''
+This module was made to perform search on a database.
+It consists of one class -- SearchEngine.
+'''
 import shelve
 import os
 from indexation import PositionByLine
 from tokenization import ToTokenize
 from tokenization import TokenWithType
+
 class SearchEngine:
 
     def __init__(self, db_name):
@@ -14,6 +19,12 @@ class SearchEngine:
         self.db.close()
         
     def search(self, query):
+        '''
+        This method performs search for a single word query.
+        param@: a query
+        return@: a dictionary with file names as keys and a list of
+        positions as values.
+        '''
         # Raise TypeError if the input type is not string      
         if not isinstance(query, str):
             raise TypeError
@@ -32,6 +43,12 @@ class SearchEngine:
             return self.db[query]
 
     def multi_search(self, query):
+        '''
+        This method performs search for a multiple word query.
+        param@: a query
+        return@: a dictionary with names of the files  in which all the words of the query
+        are present and list of positions of the words of a query as values.
+        '''
         
         # Raise TypeError if the input type is not string 
         if not isinstance(query, str):
@@ -51,24 +68,29 @@ class SearchEngine:
         # This list will contain documents in which the current word can
         # be found.
         docs = []
+        
         for word in query:
         
             # Raise ValueError if the query doesn't match any key in the database.
             if word.wordform not in self.db:
                 raise ValueError("The query doesn't match any key in the database")
             
-            # Append dictionary {doc_name: positions} in 'docs' for each word of the query.
+            # Append a dictionary {doc_name: positions} in 'docs' for each word of the query.
+            #print(self.search(word.wordform), 't')
             docs.append(self.search(word.wordform))
+            
                 
-                
+        print(docs, 'd')        
         # Turn the first document name from the list 'docs' to a set and write it to 'files'.
         files = set(docs[0])
+        print(files, 'f')
         
         for document in docs[1:]:
             
             # Each following document from 'docs' turn to a set too 
             # and intersect it with 'files'.
             files &= set(document)
+            
             
         # This dictionary will be returned.
         result = {}
@@ -77,22 +99,29 @@ class SearchEngine:
         for file_name in files:
             
             # For each dict in the list 'docs' create a key-value pair in a
-            # dictionary 'result' with a file name as a key and an empty list as a key.
+            # dictionary 'result' with a file name as a key and an empty list as a value.
             # Than we extend the empty list with an array of the positions of the word in
             # this file.
             for dictionary in docs:
                 result.setdefault(file_name, []).extend(dictionary[file_name])
 
-                # Sort positions in each document of the result so that the lines and the positions are
+
+                # Sort the result so that the lines and the positions are
                 # in the ascending order.
                 result[file_name].sort()
                 
         return result
-
-            
     
+
+
+
+  
     
 if __name__ == '__main__':
     a = SearchEngine('database')
-    #print(a.search('Анна'))
-    print(a.multi_search('Анна Павловна'))
+
+    #print(a.search('Николай'))
+
+    print(a.multi_search('Николай Ростов'))
+
+    
