@@ -41,19 +41,20 @@ class TestSearchEngine(unittest.TestCase):
         
     def test_empty_query(self):
         '''
-        Test that ValueError is raised if the query is an empty string.
+        If the query is an empty string program returns an empty dictionary.
         '''
-        
-        with self.assertRaises(ValueError):
-            self.search_eng.search("")
+        search_res = self.search_eng.search('')
+        ref_dict = {}
+        self.assertEqual(ref_dict, search_res)
             
     def test_query_not_in_db(self):
         '''
         Test that ValueError is raised if the query is not
         in database.
         '''
-        with self.assertRaises(ValueError):
-            self.search_eng.multi_search('crocodile')
+        search_res = self.search_eng.search('crocodile')
+        ref_dict = {}
+        self.assertEqual(ref_dict, search_res)
 
     def test_query_is_a_number(self):
         """
@@ -82,12 +83,13 @@ class TestMultiSearchEngine(unittest.TestCase):
         indexer = ToIndex('database')
         self.maxDiff = None
         text = open('test_text.txt', 'w')
-        text.write('Ах, не говорите мне про Австрию! \
-                    Я ничего не понимаю, может быть')
+        text.write('''Ах, не говорите мне про Австрию!\n''')
+        text.write('''Я ничего не понимаю, может быть''')
         text.close()
+        
         another_text = open('another_test_text.txt', 'w')
-        another_text.write('но Ах Австрия никогда не хотела и не хочет войны.\
-                            Она предает нас')
+        another_text.write('''но Ах Австрия никогда не хотела и не хочет войны.\n''')
+        another_text.write('''Она предает нас.''')
         another_text.close()
 
         indexer.index_by_line('test_text.txt')
@@ -116,18 +118,20 @@ class TestMultiSearchEngine(unittest.TestCase):
         
     def test_empty_query(self):
         '''
-        Test that ValueError is raised if the query is an empty string.
+        If the query is an empty string program returns an empty dictionary.
         '''
-        with self.assertRaises(ValueError):
-            self.search_eng.multi_search("")
+        search_res = self.search_eng.search('')
+        ref_dict = {}
+        self.assertEqual(ref_dict, search_res)
             
     def test_query_not_in_db(self):
         '''
         Test that ValueError is raised if the query is not
         in database.
         '''
-        with self.assertRaises(ValueError):
-            self.search_eng.multi_search('crocodile')
+        search_res = self.search_eng.search('crocodile')
+        ref_dict = {}
+        self.assertEqual(ref_dict, search_res)
 
     def test_query_is_a_number(self):
         """
