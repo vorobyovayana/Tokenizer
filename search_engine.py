@@ -21,21 +21,21 @@ class SearchEngine:
     def search(self, query):
         '''
         This method performs search for a single word query.
-        param@: a query
-        return@: a dictionary with file names as keys and a list of
+        @param query: this is a query.
+        @return: a dictionary with file names as keys and a list of
         positions as values.
         '''
         # Raise TypeError if the input type is not string      
         if not isinstance(query, str):
             raise TypeError
         
-        # Raise ValueError if the query is an empty string.
+        # If the query is an empty string return an empty dictionary.
         if query == "":
-            raise ValueError('Empty query')
+            return {}
         
-        # Raise ValueError if the query doesn't match any key in the database.
+        # If the query doesn't match any key in the database return an empty dictionary.
         if query not in self.db:
-            return ValueError("The query doesn't match any key in the database")
+            return {}
         
         # Return dictionary with files that match the query as keys and
         # positions of the query in these files as values.
@@ -45,8 +45,8 @@ class SearchEngine:
     def multi_search(self, query):
         '''
         This method performs search for a multiple word query.
-        param@: a query
-        return@: a dictionary with names of the files  in which all the words of the query
+        @param query: this is a query.
+        @return: a dictionary with names of the files in which all the words of the query
         are present and list of positions of the words of a query as values.
         '''
         
@@ -54,9 +54,9 @@ class SearchEngine:
         if not isinstance(query, str):
             raise TypeError
         
-        # Raise ValueError if the query is an empty string.
+        # If the query is an empty string return an empty dictionary.
         if query == "":
-            raise ValueError('Empty query')
+            return {}
         
         # Create an object of ToTokenize().
         tokenizer = ToTokenize()
@@ -71,19 +71,16 @@ class SearchEngine:
         
         for word in query:
         
-            # Raise ValueError if the query doesn't match any key in the database.
+            # If the query doesn't match any key in the database return an empty dictionary.
             if word.wordform not in self.db:
-                raise ValueError("The query doesn't match any key in the database")
+                return {}
             
             # Append a dictionary {doc_name: positions} in 'docs' for each word of the query.
-            #print(self.search(word.wordform), 't')
             docs.append(self.search(word.wordform))
-            
-                
-        print(docs, 'd')        
+                                
         # Turn the first document name from the list 'docs' to a set and write it to 'files'.
         files = set(docs[0])
-        print(files, 'f')
+
         
         for document in docs[1:]:
             
