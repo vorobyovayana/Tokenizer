@@ -150,16 +150,18 @@ class GetContextWindow:
             array_windows = cws[file_name]
 
             while i < len(cws[file]) - 1:
+                #print(array_windows[i])
 
                 # If the left context of the window is bigger than that of
                 # the previous one, then we unite the windows.
-                if array_windows[i].right_cont > array_windows[i+1].left_cont:
-                    array_windows[i].right_cont = array_windows[i + 1].right_cont                    
+                if (array_windows[i].right_cont > array_windows[i+1].left_cont
+                and array_windows[i].line == array_windows[i+1].line):
                     array_windows[i].position.extend(array_windows[i+1].position)
+                    array_windows[i].right_cont = array_windows[i + 1].right_cont                    
 
                     # Delete one of the united windows.
                     del array_windows[i + 1]
-                    i += 1
+                i += 1
                     
         # Return a list of the context windows.                   
         return array_windows
