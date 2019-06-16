@@ -1,5 +1,6 @@
 import shelve
 import os
+import re
 from indexation import PositionByLine
 from tokenization import ToTokenize
 from tokenization import TokenWithType
@@ -81,7 +82,7 @@ class GetContextWindow:
         if window_size > len(right_tokens)-1:
             window_size = len(right_tokens)
             
-        
+
         
         # For each token in enumerated 'right_tokens'.
         for i, token in enumerate(right_tokens):
@@ -89,6 +90,7 @@ class GetContextWindow:
             
             if i == window_size:
                 break
+            
         # Write end.
         right_border =  st + token.start + len(token.wordform)
 
@@ -111,19 +113,10 @@ class GetContextWindow:
         left_border = token.start
         
         cw = ContextWindow(position, left_border, right_border, line)
-
         return cw
 
+    def get_several_cws(self, search_results, window_size):
 
-    
-    def unite_cws(self, search_results, window_size):
-        '''
-        This method creates a context window for each word of a query
-        and unites those that intersect.
-        param@ window_size: window size.
-        param@ search_results : results of the search.
-        return@: a list of context windows.
-        '''
         
         # Create an empty dictionary in which keys are file names
         # and values are list of the context windows.
@@ -139,7 +132,17 @@ class GetContextWindow:
             for position in search_results[file_name]:
                 cw = self.get_one_cw(window_size, file_name, position)
                 cws[file_name].append(cw)
+                
+        return cws
 
+    
+    def unite_cws(self, cws):
+        '''
+        This method unites intersected context windows.
+        param@ cws: a dictionary of context windows.
+        return@: a dictionary of context windows with united intersections.
+        '''
+        
         for file in cws:
             
             # This is a counter to allow us perform iterations.
@@ -147,30 +150,183 @@ class GetContextWindow:
 
             # For our convenience write a list of context windows
             # in 'array_windows'
-            array_windows = cws[file_name]
+            array_windows = cws[file]
 
             while i < len(cws[file]) - 1:
-                #print(array_windows[i])
-
-                # If the left context of the window is bigger than that of
-                # the previous one, then we unite the windows.
-                if (array_windows[i].right_cont > array_windows[i+1].left_cont
-                and array_windows[i].line == array_windows[i+1].line):
-                    array_windows[i].position.extend(array_windows[i+1].position)
-                    array_windows[i].right_cont = array_windows[i + 1].right_cont                    
-
-                    # Delete one of the united windows.
-                    del array_windows[i + 1]
-                i += 1
+                
+                # If context windows are intersected, unite them.
+                if self.check_intersection(array_windows[i], array_windows[i + 1]) == True:
                     
-        # Return a list of the context windows.                   
-        return array_windows
+                    array_windows[i] = self.unite_windows(array_windows[i], array_windows[i + 1])
+
+                    # Delete the second window.
+                    del array_windows[i + 1]
+
+                i +=1
+
+            return array_windows
+
+    def check_intersection(self, cw_1, cw_2):
+        '''
+        This method checks if two windows are intersected.
+        param@ cw_1: the first window.
+        param@ cw_2: the second window.
+        return@: a boolean variable that is 'True' if the windows are intersected.
+        '''
+
+        intersection = False
+
+        # If the left context of the window is bigger than that of
+        # the another one,
+        # and the line of the window is same as that of
+        # the another one, then the windows are intersected.
+        if (cw_1.right_cont > cw_2.left_cont
+        and cw_1.line == cw_2.line):
+            
+            intersection = True
+            
+        return intersection
+        
+
+    def unite_windows(self, cw_1, cw_2):  
+        '''
+        This method unites two intersected windows.
+        param@ cw_1: the first window.
+        param@ cw_2: the second window.
+        return@: a united window
+        '''
+        
+        # Add the position of the second window to that of the
+        # first one.
+        cw_1.position.extend(cw_2.position)
+        # Write right context of the second window tothat of the
+        # first one.
+        cw_1.right_cont = cw_2.right_cont
+
+        return cw_1
+
+    def get_united_cws(self, search_results, window_size):
+        '''
+        This method provides context windows for a multi-word query
+        and unite intersected windows.
+        param@ window_size: window size.
+        param@ search_results : results of the search.
+        return@: a dictionary of united context windows.
+        '''
+
+        cws = self.get_several_cws(search_results, window_size)
+        cws = self.unite_cws(cws)
+
+        return cws
+    
+    def extend_window_to_sentence(self, cw):
+        '''
+        This method extends a context window to the boundaries
+        of a sentence it is situated in.
+        '''
+
+        # Create a pattern with regular expressions to detect
+        # the end and the beginning of the sentence.
+        end_pattern = re.compile(r'[.?!]\s[A-ZА-Я]')
+        start_pattern = re.compile(r'[A-ZА-Я]\s[.?!]')
+
+        # For convenienve write substrings on the left and on the right
+        # of the window into single variables.
+        left_substr = cw.line[: cw.left_cont + 1]
+        right_substr = cw.line[cw.right_cont :]
+        
+        # Search a substring that matches our pattern on
+        # 'left_substr' and 'right_substr'.
+        # For convenience write the result to variables
+        # 'start' and 'end'.
+        start = re.search(start_pattern, left_substr)
+        end = re.search(end_pattern, right_substr)
+
+
+        # If there is a substring that matches our 'end_pattern'
+        # than we move the position of the right context to the
+        # first character of this substring.
+        if end != None:
+            cw.right_cont = cw.right_cont + end.start()
+
+        # Otherwise we move the position of the right context to the
+        # end of the line in which the context window is situated.
+        else:
+            cw.right_cont = len(cw.line)
+
+        # If there is a substring that matches our 'start_pattern'
+        # than we move the position of the left context to the
+        # first character of this substring.
+        if start != None:
+            cw.left_cont = cw.left_cont - start.start()
+
+        # Otherwise we move the position of the left context to the
+        # start of the line in which the context window is situated.
+        else:
+            cw.left_cont = 0
+
+    def get_extended_cws(self, search_results, window_size):
+
+        '''
+        This method extends a context window to the boundaries
+        of a sentence it is situated in.
+        param@ window_size: window size.
+        param@ search_results : results of the search.
+        return@: a dictionary of extended context windows without intersections.
+        '''
+        
+        # Get a context window for each word of the query.
+        cws = self.get_several_cws(search_results, window_size)
+
+        for file in cws:
+            for cw in cws[file]:
+                # Extend the context to the boundaries of the sentence.
+                self.extend_window_to_sentence(cw)
+        # Unite intersected windows.
+        cws = self.unite_cws(cws)
+
+        return cws
+
+    def make_it_bold(self, cw):
+        #is not finished
+        
+        i = 0
+        result_line = ''
+        for pos in cw.position:
+
+            for i, char in enumerate(cw.line):
+
+                if i == pos.start:
+                    print(i, 'i', pos.start, 'st')
+                    result_line += '<b>'
+                
+                if i == pos.end:
+                    result_line += '</b>'
+                result_line += char
+
+        cw.line = result_line
+        
+            #cw.line = cw.line[: pos.start] + '<b>' + cw.line[pos.start : pos.end] + '</b>' + cw.line[pos.end:]
+            #cw.line = cw.line[: pos.start] + '<strong>' + cw.line[pos.start : pos.end] + '</strong>' + cw.line[pos.end:]
+        return cw
+        
+    def get_bold_cws(self, search_results, window_size):        
+        #is not finished
+        
+
+        cws = self.get_several_cws(search_results, window_size)
+        
+        for file in cws:
+            for cw in cws[file]:
+                self.make_it_bold(cw)
+        return cws
 
     
 if __name__ == '__main__':
     a = SearchEngine('database')
     c = GetContextWindow()
     #print(c.get_one_cw(5, 'text.txt', PositionByLine(10, 14, 0)))
-    #print(c.unite_two_windows(ContextWindow(PositionByLine(11, 15, 0), 7, 19, 'ooh la la мама мыла раму 123  frf34'), ContextWindow(PositionByLine(16, 20, 0), 10, 24, 'ooh la la мама мыла раму123  frf34')))
-    print(c.unite_cws(a.multi_search('Анна Павловна'), 2))
+    #print(c.get_united_cws(a.multi_search('Анна Павловна'), 2))
+    print(c.get_extended_cws(a.multi_search('Анна Павловна'), 2))
     #print(c.unite_cws(a.multi_search('мама мыла'), 2))
+    #print(c.get_bold_cws(c.get_united_cws(a.multi_search('Анна Павловна'), 2), ))
