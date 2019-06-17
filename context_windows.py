@@ -215,7 +215,9 @@ class GetContextWindow:
         '''
 
         cws = self.get_several_cws(search_results, window_size)
-        cws = self.unite_cws(cws)
+
+        for file in cws:
+            cws[file] = self.unite_cws(cws)
 
         return cws
     
