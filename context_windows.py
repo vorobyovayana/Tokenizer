@@ -290,37 +290,44 @@ class GetContextWindow:
         return cws
 
     def make_it_bold(self, cw):
-        #is not finished
-        
-        i = 0
-        result_line = ''
-        for pos in cw.position:
+        '''
+        This method makes inquired words bold.
+        param@ cw: a context_window.
+        return@: a line in which the context window is situated
+        with bold words of the query.
+        '''
+        # A slice that is equal to the context window.
+        result_line = cw.line[cw.left_cont : cw.right_cont]
 
-            for i, char in enumerate(cw.line):
+        # We make words bold by adding html tags starting from the end of the line.
+        # To do that we reverse the position of a word of the query
+        # so that the enlargement of the line doesn't change the positions of the words in question.
+        for pos in reversed(cw.position):
 
-                if i == pos.start:
-                    print(i, 'i', pos.start, 'st')
-                    result_line += '<b>'
-                
-                if i == pos.end:
-                    result_line += '</b>'
-                result_line += char
+            # This is the beginning of the word in question.
+            start = pos.start - cw.left_cont
+            # This is the end of the word in question.
+            end = pos.end - cw.left_cont
 
-        cw.line = result_line
-        
-            #cw.line = cw.line[: pos.start] + '<b>' + cw.line[pos.start : pos.end] + '</b>' + cw.line[pos.end:]
-            #cw.line = cw.line[: pos.start] + '<strong>' + cw.line[pos.start : pos.end] + '</strong>' + cw.line[pos.end:]
-        return cw
-        
-    def get_bold_cws(self, search_results, window_size):        
-        #is not finished
-        
+            # Change the last part of the slice.
+            result_line = result_line[:end] + '</b>' + result_line[end:]
+            # Change the first part of the slice.
+            result_line = result_line[:start] + '<b>' + result_line[start:]
 
-        cws = self.get_several_cws(search_results, window_size)
+        return result_line
         
+    def get_bold_cws(self, search_results, window_size):
+        '''
+        This method creates a context window for a multi-word query
+        and makes words of the query bold.
+        param@ search_results : results of the search.
+        return@: a dictionary of context windows with bold query words
+        and without intersections.
+        '''
+        cws = self.get_united_cws(search_results, window_size)
         for file in cws:
             for cw in cws[file]:
-                self.make_it_bold(cw)
+                cw.line = self.make_it_bold(cw)
         return cws
 
     
