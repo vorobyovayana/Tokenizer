@@ -230,7 +230,7 @@ class GetContextWindow:
         # Create a pattern with regular expressions to detect
         # the end and the beginning of the sentence.
         end_pattern = re.compile(r'[.?!]\s[A-ZА-Я]')
-        start_pattern = re.compile(r'[A-ZА-Я]\s[.?!]')
+        start_pattern = re.compile(r'[A-ZА-Я] [.?!]')
 
         # For convenienve write substrings on the left and on the right
         # of the window into single variables.
