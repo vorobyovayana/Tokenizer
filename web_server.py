@@ -35,7 +35,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 </html>
                 '''
         # Sends the html structure as a string of bytes to browser.
-        self.wfile.write(bytes(html, encoding="UTF-8"))
+        self.wfile.write(bytes(html, encoding="utf-8"))
 
 if __name__ == '__main__':       
     h = HTTPServer(('', 80), RequestHandler)
