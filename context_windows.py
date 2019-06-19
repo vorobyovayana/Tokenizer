@@ -71,8 +71,8 @@ class ContextWindow:
         '''
         # For convenienve write substrings on the left and on the right
         # of the window into single variables.
-        left_substr = self.line[:cw.left_cont + 1]
-        right_substr = self.line[cw.right_cont:]         
+        left_substr = self.line[:self.left_cont + 1]
+        right_substr = self.line[self.right_cont:]         
         # Search a substring that matches our pattern on
         # 'left_substr' and 'right_substr'.
         # For convenience write the result to variables
@@ -111,7 +111,6 @@ class Contexter:
         param@ 'p': position of the word in question.
         return@: a context window.
         '''
-        
         # Create an empty list and append position of the word into it
         # because later we will need to extend this list when we will
         # unite windows.
@@ -278,7 +277,7 @@ class Contexter:
     
 if __name__ == '__main__':
     a = SearchEngine('database')
-    c = GetContextWindow()
+    c = Contexter()
     #print(c.get_one_cw(5, 'text.txt', PositionByLine(10, 14, 0)))
     #print(c.get_united_cws(a.multi_search('Анна Павловна'), 2))
     print(c.get_extended_cws(a.multi_search('Анна Павловна'), 2))
