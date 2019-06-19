@@ -25,8 +25,8 @@ class ContextWindow:
         self.position = position
         self.left_cont = left_cont
         self.right_cont = right_cont
-        self.end_pattern = re.compile(r'[.?!]\s[A-ZА-Я]')
-        self.start_pattern = re.compile(r'[A-ZА-Я] [.?!]')
+        self.end_pattern = re.compile(r'[.?!]\s[A-ZА-Я]?')
+        self.start_pattern = re.compile(r'[A-ZА-Я]*[.?!]')
         
     def __eq__(self, obj):
         """
@@ -45,8 +45,6 @@ class ContextWindow:
     def make_bold(self):
         '''
         This method makes inquired words bold.
-        @return: a line in which the context window is situated
-        with bold words of the query.
         '''
         # A slice that is equal to the context window.
         result_line = self.line[self.left_cont:self.right_cont]
@@ -55,13 +53,14 @@ class ContextWindow:
         # so that the enlargement of the line doesn't change the positions of the words in question.
         for pos in reversed(self.position):
             # This is the beginning of the word in question.
-            start = pos.start - cw.left_cont
+            start = pos.start - self.left_cont
             # This is the end of the word in question.
-            end = pos.end - cw.left_cont
+            end = pos.end - self.left_cont
             # Change the last part of the slice.
             result_line = result_line[:end] + '</b>' + result_line[end:]
             # Change the first part of the slice.
             result_line = result_line[:start] + '<b>' + result_line[start:]
+            self.line = result_line
         return result_line
     
     def extend_to_sentence(self):
@@ -111,11 +110,17 @@ class Contexter:
         param@ 'p': position of the word in question.
         return@: a context window.
         '''
+        if not isinstance(window_size, int):
+            raise TypeError        
+        if not isinstance(file_path, str):
+            raise TypeError        
+        if not isinstance(p, PositionByLine):
+            raise TypeError        
         # Create an empty list and append position of the word into it
         # because later we will need to extend this list when we will
         # unite windows.
         position =[]
-        position.append(p)     
+        position.append(p)
         # Create an object of ToTokenize().
         tokenizer = ToTokenize()
         # Open a given file.
@@ -123,7 +128,7 @@ class Contexter:
         # For convenience write position in these variables.
         st = p.start
         end = p.end
-        line_num = p.line      
+        line_num = p.line        
         # In the file find a line in which the word of the query is,
         # and write it to 'line'.
         for i, line in enumerate(file):
@@ -131,29 +136,30 @@ class Contexter:
                 break
         file.close()
         # Write a tokenized substring into the variable 'right_tokens'
-        right_tokens = list(tokenizer.tokenize_reduced(line[st:]))        
+        right_tokens = list(tokenizer.tokenize_reduced(line[st:]))
+        
         # If the window_size is bigger than the right substring,
         # than reduce the window size to the length of the substring.
         if window_size > len(right_tokens)-1:
-            window_size = len(right_tokens)
+            window_size = len(right_tokens)        
         # For each token in enumerated 'right_tokens'.
-        for i, token in enumerate(right_tokens):
+        for i, token in enumerate(right_tokens):            
             if i == window_size:
-                break
+                break           
         # Write end.
-        right_border = st + token.start + len(token.wordform)      
+        right_border =  st + token.start + len(token.wordform)      
         # This is a left substring. We write it to 'left_sub_line'
         # for our convenience.
         left_tokens = list(tokenizer.tokenize_reduced(line[:end]))
         if window_size > len(left_tokens):
-            window_size = len(left_tokens) 
+                window_size = len(left_tokens) 
         # Tokenize the left sub line in reversed order until it is
         # bigger than a context size and write the index
         # of the end of the last one in 'left_border'.
         for i, token in enumerate(left_tokens[::-1]):
             if i == window_size:
                 break
-        left_border = token.start        
+        left_border = token.start              
         cw = ContextWindow(position, left_border, right_border, line)
         return cw
 
@@ -163,7 +169,13 @@ class Contexter:
         @param 'search_results': results of the search.
         @param 'window_size': a size of the future windows.
         @return: a dictionary of united context windows.
-        '''        
+        '''
+        if search_results == {}:
+            return{}
+        if not isinstance(search_results, dict):
+            raise TypeError
+        if not isinstance(window_size, int):
+            raise TypeError
         # Create an empty dictionary that we will fill in later.
         # Its keys will be file names and values -- list of the context windows.
         cws = {}
@@ -180,7 +192,7 @@ class Contexter:
         '''
         This method unites intersected context windows.
         @param 'cws': a dictionary of context windows.
-        @return: a dictionary of context windows with united intersections.
+        @return: a list of context windows with united intersections.
         '''        
         for file_name in cws:            
             # This is a counter to allow us perform iterations.
@@ -189,13 +201,13 @@ class Contexter:
             # in 'array_windows'
             array_windows = cws[file_name]
             while i < len(cws[file_name]) - 1:                
-                # If context windows are intersected, unite them.
+                # If context windows are intersected, unite them.                
                 if self.check_intersection(array_windows[i], array_windows[i + 1]):                    
                     array_windows[i] = self.unite_windows(array_windows[i], array_windows[i + 1])
                     # Delete the second window.
                     del array_windows[i + 1]
                 i += 1
-            return array_windows
+        return array_windows
 
     def check_intersection(self, cw_1, cw_2):
         '''
@@ -209,8 +221,7 @@ class Contexter:
         # the another one,
         # and the line of the window is same as that of
         # the another one, then the windows are intersected.
-        if cw_1.right_cont > cw_2.left_cont and \
-           cw_1.line == cw_2.line :            
+        if(cw_1.right_cont > cw_2.left_cont and cw_1.line == cw_2.line):
             intersection = True            
         return intersection     
 
@@ -236,7 +247,13 @@ class Contexter:
         @param 'window_size': window size.
         @param 'search_results': results of the search.
         @return: a dictionary of united context windows.
-        '''
+        '''        
+        if search_results == {}:
+            return{}
+        if not isinstance(search_results, dict):
+            raise TypeError
+        if not isinstance(window_size, int):
+            raise TypeError
         cws = self.get_several_cws(search_results, window_size)
         for file_name in cws:
             cws[file_name] = self.unite_cws(cws)
@@ -249,15 +266,22 @@ class Contexter:
         @param 'window_size': window size.
         @param 'search_results' : results of the search.
         @return: a dictionary of extended context windows without intersections.
-        '''        
+        '''
+        if search_results == {}:
+            return{}
+        if not isinstance(search_results, dict):
+            raise TypeError
+        if not isinstance(window_size, int):
+            raise TypeError
         # Get a context window for each word of the query.
         cws = self.get_several_cws(search_results, window_size)
-        for file_name in cws:
+        for file_name in cws:            
             for cw in cws[file_name]:
                 # Extend the context to the boundaries of the sentence.
-                cw.extend_to_sentence()
-        # Unite intersected windows.
-        cws = self.unite_cws(cws)
+                cw.extend_to_sentence()            
+            # Unite intersected windows.
+            cws[file_name] = self.unite_cws(cws)
+                
         return cws
          
     def get_bold_cws(self, search_results, window_size):
@@ -269,17 +293,23 @@ class Contexter:
         @return: a dictionary of context windows with bold query words
         and without intersections.
         '''
+        if search_results == {}:
+            return{}
+        if not isinstance(search_results, dict):
+            raise TypeError
+        if not isinstance(window_size, int):
+            raise TypeError
         cws = self.get_united_cws(search_results, window_size)
         for file_name in cws:
             for cw in cws[file_name]:
-                cw.make_bold(cw)
+                cw.make_bold()
         return cws
-    
+
 if __name__ == '__main__':
     a = SearchEngine('database')
     c = Contexter()
-    #print(c.get_one_cw(5, 'text.txt', PositionByLine(10, 14, 0)))
-    #print(c.get_united_cws(a.multi_search('Анна Павловна'), 2))
-    print(c.get_extended_cws(a.multi_search('Анна Павловна'), 2))
-    #print(c.unite_cws(a.multi_search('мама мыла'), 2))
-    #print(c.get_bold_cws(c.get_united_cws(a.multi_search('Анна Павловна'), 2), ))
+    #print(c.get_one_cw(5, 'tolstoy_reduced.txt', PositionByLine(40, 44, 0)))
+    #print(c.get_several_cws(a.multi_search('Анна Павловна'), 3))
+    #print(c.get_united_cws(a.multi_search('Анна Павловна'), 1))
+    #print(c.get_extended_cws(a.multi_search('Анна Павловна'), 2))
+    print(c.get_bold_cws(a.multi_search('Анна Павловна'), 2))
