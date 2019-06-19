@@ -7,7 +7,7 @@ from context_windows import Contexter
 from indexation import ToIndex
 from indexation import PositionByLine
 
-class TestGetContextWindow(unittest.TestCase):
+class TestContexter(unittest.TestCase):
 
     def setUp(self):        
         '''
@@ -39,16 +39,16 @@ class TestGetContextWindow(unittest.TestCase):
                 if single_file.startswith('database.'):                                                            
                     os.remove(single_file)
         os.remove('test_text.txt')
-
+    
     def test_right_input_type(self):
         '''
         Test that TypeError is raised if the search_results is an empty dictionary.
         '''
         with self.assertRaises(TypeError):
             self.get_cw.get_one_cw([4, 5], 'text.txt', PositionByLine(10, 14, 0))
-            
+         
         with self.assertRaises(TypeError):
-            self.get_cw.get_one_cw(5, 13, PositionByLine(10, 14, 0))
+            self.get_cw.get_one_cw(5, 13, PositionByLine(10, 14, 0))        
 
         with self.assertRaises(TypeError):
             self.get_cw.get_one_cw(5, 'text.txt', (10, 14, 0))
@@ -70,7 +70,7 @@ class TestGetContextWindow(unittest.TestCase):
             
         with self.assertRaises(TypeError):
             self.get_cw.get_bold_cws([4, 5], 1)
-
+    
     def test_empty_dict_of_search_results(self):
         '''
         Test that methods run ok if search results is an empty dictionary.
@@ -88,6 +88,7 @@ class TestGetContextWindow(unittest.TestCase):
         b_actual_cw = self.get_cw.get_bold_cws({}, window_size)
         b_ref_cw = {}
         self.assertEqual(b_ref_cw, b_actual_cw)
+    
         
     def test_get_one_cw_runs_correctly(self):
         '''
