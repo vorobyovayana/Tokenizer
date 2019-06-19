@@ -3,7 +3,7 @@ import os
 import unittest
 from search_engine import SearchEngine
 from context_windows import ContextWindow
-from context_windows import GetContextWindow
+from context_windows import Contexter
 from indexation import ToIndex
 from indexation import PositionByLine
 
@@ -11,11 +11,11 @@ class TestGetContextWindow(unittest.TestCase):
 
     def setUp(self):        
         '''
-        Create an indexer, an object of GetContextWindow, an object of SearchEngine,
+        Create an indexer, an object of Contexter, an object of SearchEngine,
         a text_file. Also indexes the text file.  Then delet the indexer.      
         '''
         indexer = ToIndex('database')
-        self.get_cw = GetContextWindow()
+        self.get_cw = Contexter()
         self.maxDiff = None
         text = open('test_text.txt', 'w')
         text.write('ooh la la мама мыла раму123  frf34')
