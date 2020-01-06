@@ -182,33 +182,13 @@ class Contexter:
         for file_name in search_results:
             # Create an empty list for context_windows.
             cws[file_name] = []
+            
             # For each position get a context window.
             for position in search_results[file_name]:
                 cw = self.get_one_cw(window_size, file_name, position)
                 cws[file_name].append(cw)                
         return cws
     
-    def unite_cws(self, cws):
-        '''
-        This method unites intersected context windows.
-        @param 'cws': a dictionary of context windows.
-        @return: a list of context windows with united intersections.
-        '''        
-        for file_name in cws:            
-            # This is a counter to allow us perform iterations.
-            i = 0
-            # For our convenience write a list of context windows
-            # in 'array_windows'
-            array_windows = cws[file_name]
-            while i < len(cws[file_name]) - 1:                
-                # If context windows are intersected, unite them.                
-                if self.check_intersection(array_windows[i], array_windows[i + 1]):                    
-                    array_windows[i] = self.unite_windows(array_windows[i], array_windows[i + 1])
-                    # Delete the second window.
-                    del array_windows[i + 1]
-                i += 1
-        return array_windows
-
     def check_intersection(self, cw_1, cw_2):
         '''
         This method checks if two windows are intersected.
@@ -240,6 +220,27 @@ class Contexter:
         cw_1.right_cont = cw_2.right_cont
         return cw_1
 
+    def unite_cws(self, cws):
+        '''
+        This method unites intersected context windows.
+        @param 'cws': a dictionary of context windows.
+        @return: a list of context windows with united intersections.
+        '''        
+                    
+        # This is a counter to allow us perform iterations.
+        i = 0
+        # For our convenience write a list of context windows
+        # in 'array_windows'
+        array_windows = cws
+        while i < len(cws) - 1:                
+            # If context windows are intersected, unite them.                
+            if self.check_intersection(array_windows[i], array_windows[i + 1]):                    
+                array_windows[i] = self.unite_windows(array_windows[i], array_windows[i + 1])
+                # Delete the second window.
+                del array_windows[i + 1]
+            i += 1           
+        return array_windows
+
     def get_united_cws(self, search_results, window_size):
         '''
         This method provides context windows for a multi-word query
@@ -256,7 +257,7 @@ class Contexter:
             raise TypeError
         cws = self.get_several_cws(search_results, window_size)
         for file_name in cws:
-            cws[file_name] = self.unite_cws(cws)
+            cws[file_name] = self.unite_cws(cws[file_name])
         return cws
 
     def get_extended_cws(self, search_results, window_size):
@@ -280,8 +281,7 @@ class Contexter:
                 # Extend the context to the boundaries of the sentence.
                 cw.extend_to_sentence()            
             # Unite intersected windows.
-            cws[file_name] = self.unite_cws(cws)
-                
+            cws[file_name] = self.unite_cws(cws)                
         return cws
          
     def get_bold_cws(self, search_results, window_size):
@@ -301,8 +301,10 @@ class Contexter:
             raise TypeError
         cws = self.get_united_cws(search_results, window_size)
         for file_name in cws:
+            #print(file_name)
+            #print(cws[file_name])
             for cw in cws[file_name]:
-                cw.make_bold()
+                cw.make_bold()                
         return cws
 
 if __name__ == '__main__':
@@ -312,4 +314,9 @@ if __name__ == '__main__':
     #print(c.get_several_cws(a.multi_search('Анна Павловна'), 3))
     #print(c.get_united_cws(a.multi_search('Анна Павловна'), 1))
     #print(c.get_extended_cws(a.multi_search('Анна Павловна'), 2))
-    print(c.get_bold_cws(a.multi_search('Анна Павловна'), 2))
+    print(c.get_bold_cws(a.multi_search('Анна Павловна'), 3))
+    
+    
+    
+  
+    
