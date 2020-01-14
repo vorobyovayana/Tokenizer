@@ -120,9 +120,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         # and start an ordered list.
         self.wfile.write(bytes('<html><form><body><ol>', encoding = "utf-8"))
         for i, fn in enumerate(sorted_file_names):
-            if i > docoffset + doclimit:
+            if i >= docoffset + doclimit: 
                 break
-            if i >= docoffset and i < docoffset + doclimit:
+            if i >= docoffset:
                 # Post each file name as an element of an ordered list.
                 self.wfile.write(bytes('<li><p>%s</p></i>' % fn, encoding = "utf-8"))            
                 self.wfile.write(bytes('<ul>', encoding = "utf-8"))            
