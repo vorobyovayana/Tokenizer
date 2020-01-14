@@ -78,28 +78,19 @@ class RequestHandler(BaseHTTPRequestHandler):
         query = form.getvalue('query')
         # Get the user's doclimit from the form or make it equal 3 by default.
         if form.getvalue('doclimit'):            
-            doclimit = int(form.getvalue('doclimit')) - 1
+            doclimit = int(form.getvalue('doclimit'))
         else:
             doclimit = 3
         # Get the user's docoffset from the form or make it equal 0 by default.
         if form.getvalue('docoffset'):
             docoffset = int(form.getvalue('docoffset')) - 1
         else:
-            docoffset = 0             
-        # If doclimit is smaller than docoffset, send message to a user
-        # and raise an exception.
-        if doclimit < docoffset:
-            self.wfile.write(bytes('Doclimit cannot be smaller than docoffset', encoding = "utf-8"))
-            raise ValueError
-        # If doclimit is smaller than zero, send message to a user
-        # and raise an exception.
-        if doclimit < 0:
-            self.wfile.write(bytes('Doclimit has to be bigger than one', encoding = "utf-8"))
-            raise ValueError        
+            docoffset = 0
+            
         # If docoffset is smaller than zero, send message to a user
         # and raise an exception.
         if docoffset < 0:
-            self.wfile.write(bytes('Docoffset has to be bigger than one', encoding = "utf-8"))
+            self.wfile.write(bytes('Docoffset has to be one or bigger.', encoding = "utf-8"))
             raise ValueError              
         # Create a search engine.
         search_engine = SearchEngine('database')        
@@ -110,10 +101,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         if search_results == {}:
             self.wfile.write(bytes('Your query is not in the database', encoding = "utf-8"))
             raise ValueError
-        # If the doclimit is bigger than the number of documents, 
-        # make the latter the doclimit.
-        if doclimit > len(search_results):
-            doclimit = len(search_results) - 1
+
         # If the docoffset is bigger than the number of documents, 
         # make the latter the doclimit.
         if docoffset > len(search_results):
@@ -132,7 +120,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         # and start an ordered list.
         self.wfile.write(bytes('<html><form><body><ol>', encoding = "utf-8"))
         for i, fn in enumerate(sorted_file_names):
-            if i >= docoffset and i <= doclimit:
+            if i > docoffset + doclimit:
+                break
+            if i >= docoffset and i < docoffset + doclimit:
                 # Post each file name as an element of an ordered list.
                 self.wfile.write(bytes('<li><p>%s</p></i>' % fn, encoding = "utf-8"))            
                 self.wfile.write(bytes('<ul>', encoding = "utf-8"))            
