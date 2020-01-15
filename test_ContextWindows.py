@@ -17,9 +17,15 @@ class TestContexter(unittest.TestCase):
         indexer = ToIndex('database')
         self.get_cw = Contexter()
         self.maxDiff = None
-        text = open('test_text.txt', 'w')
-        text.write('ooh la la мама мыла раму123  frf34')
-        text.close()
+        text1 = open('test_text.txt', 'w')
+        text1.write('ooh la la мама мыла раму123  frf34')
+        text1.close()
+        text2 = open('test_text2.txt', 'w')
+        text2.write('мама мыла окно')
+        text2.close()
+        text3 = open('test_text3.txt', 'w')
+        text3.write('мама мыла еще что-нибудь')
+        text3.close()
         indexer.index_by_line('test_text.txt')
         del indexer
         self.search = SearchEngine('database')
@@ -32,14 +38,11 @@ class TestContexter(unittest.TestCase):
         del self.search
         files = os.listdir()
         for single_file in files:
-            if single_file == "database": 
+            if single_file == "database" or single_file.startswith('database.'): 
                 os.remove(single_file)
-            else:        
-
-                if single_file.startswith('database.'):                                                            
-                    os.remove(single_file)
         os.remove('test_text.txt')
-    
+        os.remove('test_text2.txt')
+        os.remove('test_text3.txt')
     def test_right_input_type(self):
         '''
         Test that TypeError is raised if the search_results is an empty dictionary.
@@ -140,7 +143,39 @@ class TestContexter(unittest.TestCase):
         actual_cw = self.get_cw.get_bold_cws(self.search.multi_search('мама мыла'), window_size)
         ref_cw = {'test_text.txt' :[([PositionByLine(10, 14, 0), PositionByLine(15, 19, 0)], 7, 23, 'la <b>мама</b> <b>мыла</b> раму')]}
 
+    def test_limited_windows_runs_ok(self):
+        '''
+        Test that the programs runs fine provided the input of the correct type.
+        '''
+        window_size = 1
+        doclimit = 3
+        docoffset = 0
+        lim_of_pairs = [(0,1), (1,7), (3, 2)]
+        actual_result = self.get_cw.get_cws_within_limit_and_offset(self.search.multi_search('мама мыла'), window_size, doclimit, docoffset, lim_of_pairs)
+        fake_result = {'test_text.txt': [([PositionByLine(10, 14, 0), PositionByLine(15, 19, 0)], 7, 23, 'la <b>мама</b> <b>мыла</b> раму')],
+        'test_text2.txt': [([PositionByLine(0, 4, 0), PositionByLine(5, 9, 0)], 0, 9, '<b>мама</b> <b>мыла</b> окно')],
+        'test_text3.txt': [([PositionByLine(0, 4, 0), PositionByLine(5, 9, 0)], 0, 9, '<b>мама</b> <b>мыла</b> еще что-нибудь')]}
         
+    def test_limited_windows_wrong_input(self):
+        '''
+        Test that TypeError is raised if the input is of the wrong type.
+        '''
+        window_size = 1
+        doclimit = 'lol'
+        docoffset = ['k', 'e', 'k']
+        lim_of_pairs = [(0,1), (1,7), (3, 2)]
+        with self.assertRaises(TypeError):
+            self.get_cw.get_cws_within_limit_and_offset(self.search.multi_search('мама мыла'), 'LOL', 3, 0, [(0,1), (1,7), (3, 2)])
+        with self.assertRaises(TypeError):
+            self.get_cw.get_cws_within_limit_and_offset(self.search.multi_search('мама мыла'), 1, ['k', 'e', 'k'], 0, [(0,1), (1,7), (3, 2)])
+        with self.assertRaises(TypeError):
+            self.get_cw.get_cws_within_limit_and_offset(self.search.multi_search('мама мыла'), 1, 3, (1,2,3), [(0,1), (1,7), (3, 2)])
+        with self.assertRaises(TypeError):
+            self.get_cw.get_cws_within_limit_and_offset(self.search.multi_search('мама мыла'), 1, 3, 0, 'not a list')
+        with self.assertRaises(TypeError):
+            self.get_cw.get_cws_within_limit_and_offset(self.search.multi_search('мама мыла'), 1, 3, 0, [[0,1], [1,7], [3, 2]])
+        with self.assertRaises(TypeError):
+            self.get_cw.get_cws_within_limit_and_offset(self.search.multi_search('мама мыла'), 1, 3, 0, [('a',1), (1,7), (3, 2)])
 
 if __name__ == '__main__':
     unittest.main()
