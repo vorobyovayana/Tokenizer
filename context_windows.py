@@ -181,13 +181,13 @@ class Contexter:
         cws = {}
         for file_name in search_results:
             # Create an empty list for context_windows.
-            cws[file_name] = []
-            
+            cws[file_name] = []            
             # For each position get a context window.
             for position in search_results[file_name]:
                 cw = self.get_one_cw(window_size, file_name, position)
                 cws[file_name].append(cw)                
         return cws
+
     
     def check_intersection(self, cw_1, cw_2):
         '''
@@ -232,7 +232,9 @@ class Contexter:
         # For our convenience write a list of context windows
         # in 'array_windows'
         array_windows = cws
-        while i < len(cws) - 1:                
+
+        while i < len(cws) - 1:
+            #print(array_windows[i])
             # If context windows are intersected, unite them.                
             if self.check_intersection(array_windows[i], array_windows[i + 1]):                    
                 array_windows[i] = self.unite_windows(array_windows[i], array_windows[i + 1])
@@ -280,9 +282,10 @@ class Contexter:
         for file_name in cws:            
             for cw in cws[file_name]:
                 # Extend the context to the boundaries of the sentence.
-                cw.extend_to_sentence()            
+                cw.extend_to_sentence()
+                #print(cw)
             # Unite intersected windows.
-            cws[file_name] = self.unite_cws(cws)                
+            cws[file_name] = self.unite_cws(cws[file_name])                
         return cws
          
     def get_bold_cws(self, search_results, window_size):
@@ -305,12 +308,109 @@ class Contexter:
             for cw in cws[file_name]:
                 cw.make_bold()                
         return cws
+    
+    def get_several_cws_limited(self, search_results, window_size, doclimit, docoffset): 
+        '''
+        This method gets context windows for each position in a given dictionary for
+        the documents required by a user.
+        @param 'search_results': results of the search.
+        @param 'window_size': a size of the future windows.
+        @param 'doclimit': the limit of documents on the page.
+        @param 'docoffset': the number of the first document on the page.
+        @return: a dictionary of united context windows within the limit
+        established by the user.
+        '''
+        if search_results == {}:
+            return{}
+        if not isinstance(search_results, dict):
+            raise TypeError
+        if not isinstance(window_size, int):
+            raise TypeError
+        if not isinstance(doclimit, int):
+            raise TypeError
+        if not isinstance(docoffset, int):
+            raise TypeError
+        # Create an empty dictionary that we will fill in later.
+        # Its keys will be file names and values -- list of the context windows.
+        cws = {}
+        sorted_file_names = sorted(search_results)
+        print(sorted_file_names)
+        for i, file_name in enumerate(sorted_file_names):            
+            # Exit the cycle if 'i' is out of limit.
+            if i >= docoffset + doclimit:
+                break
+            if i >= docoffset:
+                cws[file_name] = []
+                # For each position get a context window.
+                for position in search_results[file_name]:                    
+                    cws[file_name].append(self.get_one_cw(window_size, file_name, position))                
+        return cws
 
-    def get_cws_within_limit_and_offset(self, search_results, window_size, doclimit, docoffset, lim_of_pairs):
+    def get_united_cws_limited(self, search_results, window_size, doclimit, docoffset):
+        '''
+        This method provides context windows for a multi-word query
+        and unite intersected windows for the documents required by a user.
+        @param 'window_size': window size.
+        @param 'search_results': results of the search.
+        @param 'doclimit': the limit of documents on the page.
+        @param 'docoffset': the number of the first document on the page.
+        @return: a dictionary of united context windows
+        within the limit established by the user.
+        '''        
+        if search_results == {}:
+            return{}
+        if not isinstance(search_results, dict):
+            raise TypeError
+        if not isinstance(window_size, int):
+            raise TypeError
+        if not isinstance(doclimit, int):
+            raise TypeError
+        if not isinstance(docoffset, int):
+            raise TypeError
+        cws = self.get_several_cws_limited(search_results, window_size, doclimit, docoffset)        
+        for file_name in cws:
+            print(file_name)
+            cws[file_name] = self.unite_cws(cws[file_name])
+        return cws
+
+
+    def get_extended_cws_limited(self, search_results, window_size, doclimit, docoffset):
+        '''
+        This method gets a context window for each position in the documents
+        required by a user and extends a context window to the boundaries
+        of a sentence it is situated in.
+        @param 'window_size': window size.
+        @param 'search_results' : results of the search.
+        @param 'doclimit': the limit of documents on the page.
+        @param 'docoffset': the number of the first document on the page.
+        @return: a dictionary of extended context windows without intersections
+        within the limit established
+        by the user.
+        '''
+        if search_results == {}:
+            return{}
+        if not isinstance(search_results, dict):
+            raise TypeError
+        if not isinstance(window_size, int):
+            raise TypeError
+        if not isinstance(doclimit, int):
+            raise TypeError
+        if not isinstance(docoffset, int):
+            raise TypeError
+        # Get a context window for each word of the query.
+        cws = self.get_several_cws_limited(search_results, window_size, doclimit, docoffset)
+        for file_name in cws:            
+            for cw in cws[file_name]:
+                # Extend the context to the boundaries of the sentence.
+                cw.extend_to_sentence()
+            # Unite intersected windows.
+            cws[file_name] = self.unite_cws(cws[file_name])
+        return cws
+
+    def get_bold_cws_limited(self, search_results, window_size, doclimit, docoffset, lim_of_pairs):
         '''
         This method creates multi-query, bold context windows so that they
-        conform to a user's limit and offset - for the number of documents
-        and that of quotes.
+        conform to a user's limit and offset.
         @param 'search_results': results of the search.
         @param 'window_size': a size of the future windows.
         @param 'doclimit': the limit of documents on the page.
@@ -339,7 +439,7 @@ class Contexter:
                 if not isinstance(tuple_element, int):
                     raise TypeError
         # Getting united context windows
-        cws = self.get_united_cws(search_results, window_size)
+        cws = self.get_united_cws_limited(search_results, window_size, doclimit, docoffset)
         # Sorting file names in the chronological order.
         sorted_file_names = sorted(cws)
         # Creating an empty dictionary for required quotes only.
@@ -365,20 +465,15 @@ class Contexter:
                             # Append the bold context window in the resulting list.
                             result[sorted_fn].append(cw.make_bold())               
         return result
-
-
-
 if __name__ == '__main__':
     a = SearchEngine('database')
     c = Contexter()
     #print(c.get_one_cw(5, 'tolstoy_reduced.txt', PositionByLine(40, 44, 0)))
+    #print(c.get_several_cws_limited(a.multi_search('Анна Павловна'), 1, 2, 0))
     #print(c.get_several_cws(a.multi_search('Анна Павловна'), 3))
+    #print(c.get_united_cws_limited(a.multi_search('Анна Павловна'), 1, 1, 0))
     #print(c.get_united_cws(a.multi_search('Анна Павловна'), 1))
     #print(c.get_extended_cws(a.multi_search('Анна Павловна'), 2))
-    # print(c.get_bold_cws(a.multi_search('Анна Павловна'), 3))
-    print(c.get_cws_within_limit_and_offset(a.multi_search('Анна Павловна'), 1, 4, 1, [(0,1)]))
-    
-    
-    
-  
-   
+    #print(c.get_extended_cws_limited(a.multi_search('Анна Павловна'), 1, 1, 0))
+    #print(c.get_bold_cws(a.multi_search('Анна Павловна'), 3))
+    print(c.get_bold_cws_limited(a.multi_search('Анна Павловна'), 1, 4, 0, [(0,1), (0,1), (0,1), (0,1)]))
