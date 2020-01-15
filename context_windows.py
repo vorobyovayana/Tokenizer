@@ -274,6 +274,7 @@ class Contexter:
             raise TypeError
         if not isinstance(window_size, int):
             raise TypeError
+        
         # Get a context window for each word of the query.
         cws = self.get_several_cws(search_results, window_size)
         for file_name in cws:            
@@ -301,11 +302,71 @@ class Contexter:
             raise TypeError
         cws = self.get_united_cws(search_results, window_size)
         for file_name in cws:
-            #print(file_name)
-            #print(cws[file_name])
             for cw in cws[file_name]:
                 cw.make_bold()                
         return cws
+
+    def get_cws_within_limit_and_offset(self, search_results, window_size, doclimit, docoffset, lim_of_pairs):
+        '''
+        This method creates multi-query, bold context windows so that they
+        conform to a user's limit and offset - for the number of documents
+        and that of quotes.
+        @param 'search_results': results of the search.
+        @param 'window_size': a size of the future windows.
+        @param 'doclimit': the limit of documents on the page.
+        @param 'docoffset': the number of the first document on the page.
+        @param 'lim_of_pairs': the number of the first quote on the page,
+        and the number of quotes on the page in general for a certain document.
+        @return: a dictionary of multi-query, bold context windows within the limit established
+        by the user.
+        '''
+        if search_results == {}:
+            return{}
+        if not isinstance(search_results, dict):
+            raise TypeError
+        if not isinstance(window_size, int):
+            raise TypeError
+        if not isinstance(doclimit, int):
+            raise TypeError
+        if not isinstance(docoffset, int):
+            raise TypeError
+        if not isinstance(lim_of_pairs, list):
+            raise TypeError
+        for pair in lim_of_pairs:
+            if not isinstance(pair, tuple):
+                raise TypeError
+            for tuple_element in pair:
+                if not isinstance(tuple_element, int):
+                    raise TypeError
+        # Getting united context windows
+        cws = self.get_united_cws(search_results, window_size)
+        # Sorting file names in the chronological order.
+        sorted_file_names = sorted(cws)
+        # Creating an empty dictionary for required quotes only.
+        # It is to be returned.
+        result = {}
+        # Iterating through the file names.
+        for i, sorted_fn in enumerate(sorted_file_names):
+            # Exit the cycle if 'i' is out of limit.
+            if i >= docoffset + doclimit:
+                break
+            if i >= docoffset:
+                # Creating an empty list for required context windows only, belonging
+                # to the file at hand.
+                result[sorted_fn] = []
+                # Iterating through the pairs offsets and limits.
+                for lim_of_pair in lim_of_pairs:
+                    # Iterating through the context windows belonging to the file at hand.
+                    for t, cw in enumerate(cws[sorted_fn]):
+                        # Exit the cycle if 't' is out of limit.
+                        if t >= lim_of_pair[0] + lim_of_pair[1]:
+                            break
+                        if t >= lim_of_pair[0]:
+                            # Append the bold context window in the resulting list.
+                            result[sorted_fn].append(cw.make_bold())               
+        return result
+
+
 
 if __name__ == '__main__':
     a = SearchEngine('database')
@@ -314,9 +375,10 @@ if __name__ == '__main__':
     #print(c.get_several_cws(a.multi_search('Анна Павловна'), 3))
     #print(c.get_united_cws(a.multi_search('Анна Павловна'), 1))
     #print(c.get_extended_cws(a.multi_search('Анна Павловна'), 2))
-    print(c.get_bold_cws(a.multi_search('Анна Павловна'), 3))
+    # print(c.get_bold_cws(a.multi_search('Анна Павловна'), 3))
+    print(c.get_cws_within_limit_and_offset(a.multi_search('Анна Павловна'), 1, 4, 1, [(0,1)]))
     
     
     
   
-    
+   
