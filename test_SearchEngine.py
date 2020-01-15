@@ -41,20 +41,11 @@ class TestSearchEngine(unittest.TestCase):
         
     def test_empty_query(self):
         '''
-        If the query is an empty string program returns an empty dictionary.
+        Test that ValueError is raised if the query is an empty string.
         '''
-        search_res = self.search_eng.search('')
-        ref_dict = {}
-        self.assertEqual(ref_dict, search_res)
-            
-    def test_query_not_in_db(self):
-        '''
-        Test that ValueError is raised if the query is not
-        in database.
-        '''
-        search_res = self.search_eng.search('crocodile')
-        ref_dict = {}
-        self.assertEqual(ref_dict, search_res)
+        
+        with self.assertRaises(ValueError):
+            self.search_eng.search("")
 
     def test_query_is_a_number(self):
         """
@@ -83,15 +74,25 @@ class TestMultiSearchEngine(unittest.TestCase):
         indexer = ToIndex('database')
         self.maxDiff = None
         text = open('test_text.txt', 'w')
-        text.write('''Ах, не говорите мне про Австрию!\n''')
-        text.write('''Я ничего не понимаю, может быть''')
+        text.write('Ах, не говорите мне про Австрию! \
+                    Я ничего не понимаю, может быть')
         text.close()
-        
         another_text = open('another_test_text.txt', 'w')
-        another_text.write('''но Ах Австрия никогда не хотела и не хочет войны.\n''')
-        another_text.write('''Она предает нас.''')
+        another_text.write('но Ах Австрия никогда не хотела и не хочет войны.\
+                            Она предает нас')
         another_text.close()
 
+        text1 = open('test_text1.txt', 'w')
+        text1.write('ooh la la мама мыла раму123  frf34')
+        text1.close()
+        text2 = open('test_text2.txt', 'w')
+        text2.write('мама мыла окно')
+        text2.close()
+        text3 = open('test_text3.txt', 'w')
+        text3.write('мама мыла еще что-нибудь')
+        text3.close()
+        
+        
         indexer.index_by_line('test_text.txt')
         indexer.index_by_line('another_test_text.txt')
         del indexer
@@ -115,23 +116,20 @@ class TestMultiSearchEngine(unittest.TestCase):
                     os.remove(single_file)
         os.remove('test_text.txt')
         os.remove('another_test_text.txt')
-        
     def test_empty_query(self):
         '''
-        If the query is an empty string program returns an empty dictionary.
+        Test that ValueError is raised if the query is an empty string.
         '''
-        search_res = self.search_eng.search('')
-        ref_dict = {}
-        self.assertEqual(ref_dict, search_res)
+        with self.assertRaises(ValueError):
+            self.search_eng.multi_search("")
             
     def test_query_not_in_db(self):
         '''
-        Test that ValueError is raised if the query is not
+        Test that an empty dictionary is returned if the query is not
         in database.
-        '''
-        search_res = self.search_eng.search('crocodile')
-        ref_dict = {}
-        self.assertEqual(ref_dict, search_res)
+        '''       
+        result = self.search_eng.multi_search('crocodile')
+        reference_dict = {}
 
     def test_query_is_a_number(self):
         """
@@ -156,15 +154,42 @@ class TestMultiSearchEngine(unittest.TestCase):
         '''
         Test that program runs as expected given there are two words
         in the query and two files in the database.
-        '''
-       
+        '''       
         search_res = self.search_eng.multi_search('про Австрию')
         ref_dict = {'test_text.txt': [PositionByLine(20, 23, 0), PositionByLine(24, 31, 0)]}
         self.assertEqual(ref_dict, search_res)
+        
+    def test_if_wrong_input(self):
+        '''
+        Test that the programs runs okay if the input is of the wrong type.
+        '''
+        with self.assertRaises(TypeError):
+            self.search_eng.limited_multi_search('мама мыла', 'LOL', 3)
+        with self.assertRaises(TypeError):
+            self.search_eng.limited_multi_search('мама мыла', 1, ['k', 'e', 'k'])
+        with self.assertRaises(TypeError):
+            self.search_eng.limited_multi_search([1,2,3], 1, 3)
 
+    def test_query_not_in_db(self):
+        '''
+        Test that an empty dictionary is returned if the query is not
+        in database.
+        '''       
+        result = self.search_eng.limited_multi_search('crocodile', 3, 0)
+        reference_dict = {}
 
-
-
+    def test_limited_search_runs_ok(self):
+        '''
+        Test that the programs runs fine provided the input of the correct type.
+        '''
+        query = 'мама мыла'
+        doclimit = 3
+        docoffset = 0
+        actual_result = self.search_eng.limited_multi_search('мама мыла', doclimit, docoffset)
+        fake_result = {'test_text.txt': [PositionByLine(10, 14, 0), PositionByLine(15, 19, 0)],
+        'test_text2.txt': [PositionByLine(0, 4, 0), PositionByLine(5, 9, 0)],
+        'test_text3.txt': [PositionByLine(0, 4, 0), PositionByLine(5, 9, 0)]}
+    
 if __name__ == '__main__':
     unittest.main()
     
