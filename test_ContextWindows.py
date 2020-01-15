@@ -27,6 +27,9 @@ class TestContexter(unittest.TestCase):
         text3.write('мама мыла еще что-нибудь')
         text3.close()
         indexer.index_by_line('test_text.txt')
+        indexer.index_by_line('test_text2.txt')
+        indexer.index_by_line('test_text3.txt')
+
         del indexer
         self.search = SearchEngine('database')
         
@@ -126,7 +129,7 @@ class TestContexter(unittest.TestCase):
         window2 = self.get_cw.get_one_cw(window_size, 'test_text.txt', positions2)
         united_cws = self.get_cw.unite_windows(window1, window2)
         ref_united_cws = [([PositionByLine(10, 14, 0), PositionByLine(15, 19, 0)], 7, 23, 'ooh la la мама мыла раму123  frf34')]
-    
+
     def test_windows_are_extended_correctly(self): 
         '''
         Test that we context window is extended correctly.
@@ -143,7 +146,7 @@ class TestContexter(unittest.TestCase):
         actual_cw = self.get_cw.get_bold_cws(self.search.multi_search('мама мыла'), window_size)
         ref_cw = {'test_text.txt' :[([PositionByLine(10, 14, 0), PositionByLine(15, 19, 0)], 7, 23, 'la <b>мама</b> <b>мыла</b> раму')]}
 
-    def test_limited_windows_runs_ok(self):
+    def test_limited_bold_windows_runs_ok(self):
         '''
         Test that the programs runs fine provided the input of the correct type.
         '''
@@ -151,31 +154,111 @@ class TestContexter(unittest.TestCase):
         doclimit = 3
         docoffset = 0
         lim_of_pairs = [(0,1), (1,7), (3, 2)]
-        actual_result = self.get_cw.get_cws_within_limit_and_offset(self.search.multi_search('мама мыла'), window_size, doclimit, docoffset, lim_of_pairs)
+        actual_result = self.get_cw.get_bold_cws_limited(self.search.multi_search('мама мыла'), window_size, doclimit, docoffset, lim_of_pairs)
         fake_result = {'test_text.txt': [([PositionByLine(10, 14, 0), PositionByLine(15, 19, 0)], 7, 23, 'la <b>мама</b> <b>мыла</b> раму')],
         'test_text2.txt': [([PositionByLine(0, 4, 0), PositionByLine(5, 9, 0)], 0, 9, '<b>мама</b> <b>мыла</b> окно')],
         'test_text3.txt': [([PositionByLine(0, 4, 0), PositionByLine(5, 9, 0)], 0, 9, '<b>мама</b> <b>мыла</b> еще что-нибудь')]}
         
-    def test_limited_windows_wrong_input(self):
+    def test_limited_bold_windows_wrong_input(self):
         '''
         Test that TypeError is raised if the input is of the wrong type.
         '''
+        with self.assertRaises(TypeError):
+            self.get_cw.get_bold_cws_limited(self.search.multi_search('мама мыла'), 'LOL', 3, 0, [(0,1), (1,7), (3, 2)])
+        with self.assertRaises(TypeError):
+            self.get_cw.get_bold_cws_limited(self.search.multi_search('мама мыла'), 1, ['k', 'e', 'k'], 0, [(0,1), (1,7), (3, 2)])
+        with self.assertRaises(TypeError):
+            self.get_cw.get_bold_cws_limited(self.search.multi_search('мама мыла'), 1, 3, (1,2,3), [(0,1), (1,7), (3, 2)])
+        with self.assertRaises(TypeError):
+            self.get_cw.get_bold_cws_limited(self.search.multi_search('мама мыла'), 1, 3, 0, 'not a list')
+        with self.assertRaises(TypeError):
+            self.get_cw.get_bold_cws_limited(self.search.multi_search('мама мыла'), 1, 3, 0, [[0,1], [1,7], [3, 2]])
+        with self.assertRaises(TypeError):
+            self.get_cw.get_bold_cws_limited(self.search.multi_search('мама мыла'), 1, 3, 0, [('a',1), (1,7), (3, 2)])
+
+
+    def test_limited_extended_windows_runs_ok(self):
+        '''
+        Test that the programs runs fine provided the input of the correct type.
+        '''
         window_size = 1
-        doclimit = 'lol'
-        docoffset = ['k', 'e', 'k']
+        doclimit = 3
+        docoffset = 0
         lim_of_pairs = [(0,1), (1,7), (3, 2)]
+        actual_result = self.get_cw.get_extended_cws_limited(self.search.multi_search('мама мыла'), window_size, doclimit, docoffset)
+        fake_result = {'test_text.txt': [([PositionByLine(10, 14, 0), PositionByLine(15, 19, 0)], 0, 33, 'ooh la la мама мыла раму123  frf34')],
+        'test_text2.txt': [([PositionByLine(0, 4, 0), PositionByLine(5, 9, 0)], 0, 14, 'мама мыла окно')],
+        'test_text3.txt': [([PositionByLine(0, 4, 0), PositionByLine(5, 9, 0)], 0, 24, 'мама мыла еще что-нибудь')]}
+        
+    def test_limited_extended_windows_wrong_input(self):
+        '''
+        Test that TypeError is raised if the input is of the wrong type.
+        '''
         with self.assertRaises(TypeError):
-            self.get_cw.get_cws_within_limit_and_offset(self.search.multi_search('мама мыла'), 'LOL', 3, 0, [(0,1), (1,7), (3, 2)])
+            self.get_cw.get_extended_cws_limited(self.search.multi_search('мама мыла'), 'LOL', 0, 3)
         with self.assertRaises(TypeError):
-            self.get_cw.get_cws_within_limit_and_offset(self.search.multi_search('мама мыла'), 1, ['k', 'e', 'k'], 0, [(0,1), (1,7), (3, 2)])
+            self.get_cw.get_extended_cws_limited(self.search.multi_search('мама мыла'), 1, ['k', 'e', 'k'], 1)
         with self.assertRaises(TypeError):
-            self.get_cw.get_cws_within_limit_and_offset(self.search.multi_search('мама мыла'), 1, 3, (1,2,3), [(0,1), (1,7), (3, 2)])
+            self.get_cw.get_extended_cws_limited(self.search.multi_search('мама мыла'), 1, 3, (1,2,3))
         with self.assertRaises(TypeError):
-            self.get_cw.get_cws_within_limit_and_offset(self.search.multi_search('мама мыла'), 1, 3, 0, 'not a list')
+            self.get_cw.get_extended_cws_limited([1,1,3], 1, 3, (1,2,3))
+
+
+    def test_limited_united_windows_runs_ok(self):
+        '''
+        Test that the programs runs fine provided the input of the correct type.
+        '''
+        window_size = 1
+        doclimit = 3
+        docoffset = 0
+        lim_of_pairs = [(0,1), (1,7), (3, 2)]
+        actual_result = self.get_cw.get_united_cws_limited(self.search.multi_search('мама мыла'), window_size, doclimit, docoffset)
+        fake_result = {'test_text.txt': [([PositionByLine(10, 14, 0), PositionByLine(15, 19, 0)], 10, 19, 'ooh la la мама мыла раму123  frf34')],
+        'test_text2.txt': [([PositionByLine(0, 4, 0), PositionByLine(5, 9, 0)], 0, 9, 'мама мыла окно')],
+        'test_text3.txt': [([PositionByLine(0, 4, 0), PositionByLine(5, 9, 0)], 0, 9, 'мама мыла еще что-нибудь')]}
+        
+    def test_limited_united_windows_wrong_input(self):
+        '''
+        Test that TypeError is raised if the input is of the wrong type.
+        '''
         with self.assertRaises(TypeError):
-            self.get_cw.get_cws_within_limit_and_offset(self.search.multi_search('мама мыла'), 1, 3, 0, [[0,1], [1,7], [3, 2]])
+            self.get_cw.get_united_cws_limited(self.search.multi_search(self.search.multi_search('мама мыла'), 'LOL', 0, 3))
         with self.assertRaises(TypeError):
-            self.get_cw.get_cws_within_limit_and_offset(self.search.multi_search('мама мыла'), 1, 3, 0, [('a',1), (1,7), (3, 2)])
+            self.get_cw.get_united_cws_limited(self.search.multi_search(self.search.multi_search('мама мыла'), 1, ['k', 'e', 'k'], 1))
+        with self.assertRaises(TypeError):
+            self.get_cw.get_united_cws_limited(self.search.multi_search('мама мыла'), 1, 3, (1,2,3))
+        with self.assertRaises(TypeError):
+            self.get_cw.get_united_cws_limited([1,1,3], 1, 3, (1,2,3))
+    
+    def test_limited_several_windows_runs_ok(self):
+        '''
+        Test that the programs runs fine provided the input of the correct type.
+        '''
+        window_size = 1
+        doclimit = 3
+        docoffset = 0
+        lim_of_pairs = [(0,1), (1,7), (3, 2)]
+        actual_result = self.get_cw.get_united_cws_limited(self.search.multi_search('мама мыла'), window_size, doclimit, docoffset)
+        fake_result = {'test_text.txt': [([PositionByLine(10, 14, 0),7, 19], 'ooh la la мама мыла раму123  frf34'),
+                                        ([PositionByLine(15, 19, 0)], 10, 27, 'ooh la la мама мыла раму123  frf34')],
+                        'test_text2.txt': [([PositionByLine(0, 4, 0)], 0, 9, 'мама мыла окно'),
+                                        ([PositionByLine(5, 9, 0)], 0, 14, 'мама мыла окно')],
+                        'test_text3.txt': [([PositionByLine(0, 4, 0)], 0, 9, 'мама мыла еще что-нибудь'),
+                                        ([PositionByLine(5, 9, 0)], 0, 13, 'мама мыла еще что-нибудь')]}
+        
+    def test_limited_several_windows_wrong_input(self):
+        '''
+        Test that TypeError is raised if the input is of the wrong type.
+        '''
+        with self.assertRaises(TypeError):
+            self.get_cw.get_several_cws_limited(self.search.multi_search(self.search.multi_search('мама мыла'), 'LOL', 0, 3))
+        with self.assertRaises(TypeError):
+            self.get_cw.get_several_cws_limited(self.search.multi_search(self.search.multi_search('мама мыла'), 1, ['k', 'e', 'k'], 1))
+        with self.assertRaises(TypeError):
+            self.get_cw.get_several_cws_limited(self.search.multi_search('мама мыла'), 1, 3, (1,2,3))
+        with self.assertRaises(TypeError):
+            self.get_cw.get_several_cws_limited([1,1,3], 1, 3, (1,2,3))
+
 
 if __name__ == '__main__':
     unittest.main()
