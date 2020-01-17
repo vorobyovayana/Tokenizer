@@ -476,4 +476,4 @@ if __name__ == '__main__':
     #print(c.get_extended_cws(a.multi_search('Анна Павловна'), 2))
     #print(c.get_extended_cws_limited(a.multi_search('Анна Павловна'), 1, 1, 0))
     #print(c.get_bold_cws(a.multi_search('Анна Павловна'), 3))
-    print(c.get_bold_cws_limited(a.multi_search('Анна Павловна'), 1, 4, 0, [(0,1), (0,1), (0,1), (0,1)]))
+    print(c.get_bold_cws_limited(a.limited_multi_search('Анна Павловна'), 1, 4, 0, [(0,1), (0,1), (0,1), (0,1)]))
