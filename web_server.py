@@ -54,7 +54,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         form = cgi.FieldStorage(fp = self.rfile, headers = self.headers, environ ={'REQUEST_METHOD':'POST'})
         # Get the user's query from the form.
         query = form.getvalue('query')
-        # Get the user's doclimit from the form or make it equal 3 by default.
+        # Get the user's doclimit from the form or make it equal 4 by default.
         if form.getvalue('doclimit'):            
             doclimit = int(form.getvalue('doclimit'))
         else:
@@ -79,7 +79,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             else:                
                 cw_offset = 1
             # Add to the list.    
-            limofpairs.append([cw_offset, cw_limit])
+            limofpairs.append((cw_offset, cw_limit))
         print(limofpairs, 'limofpairs')
         # Send response to the browser that the requested page was found.
         self.send_response(200)        
@@ -118,13 +118,15 @@ class RequestHandler(BaseHTTPRequestHandler):
         # Create an object of the 'Contexter' class to get context windows.
         self.contexter = Contexter()
         # Get context windows and make the query words bold.
-        cws = self.contexter.get_bold_cws_limited(search_results, 5, doclimit, docoffset)
+        cws = self.contexter.get_bold_cws_limited(search_results, 5, doclimit, docoffset, limofpairs)
         # Put the volumes of "War and Peace" in chronological order.
         sorted_file_names = sorted(cws)
         # Send tags to indicate the beginning of the html body of the page
         # and start an ordered list.
         self.wfile.write(bytes('''<html><body><form><ol>''', encoding = "utf-8"))
+        # Iterating through the file names.
         for i, fn in enumerate(sorted_file_names):
+            # Exit the cycle if 'i' is out of limit.
             if i >= docoffset + doclimit: 
                 break
             if i >= docoffset:
@@ -132,22 +134,31 @@ class RequestHandler(BaseHTTPRequestHandler):
                 print(limofpair, 'pair')
                 # Post each file name as an element of an ordered list.
                 self.wfile.write(bytes('<li><p>%s</p></i>' % fn, encoding = "utf-8"))
+                # Create slots for limits and offsets for each specific document.
                 self.wfile.write(bytes("""
                                         <label for = "cw%soffset"> offset
                                         <input type = "text" name = "cw%soffset"  value = "%s">
                                         <label for = "cw%slimit"> limit
                                         <input type = "text" name = "cw%slimit"  value = "%s" >
                                         """% (i, i, limofpair[0], i, i, limofpair[1]), encoding="utf-8"))
-                self.wfile.write(bytes('<ul>', encoding = "utf-8"))                                           
+                # Send the tag to indicate the beginning of the unordered list.
+                self.wfile.write(bytes('<ul>', encoding = "utf-8"))
                 for t, cw in enumerate(cws[fn]):
-                    if t >= (limofpair[0] - 1) + limofpair[1]:
+                    print(cws[fn], 'cws')
+                    print(t, 't')
+                    print((limofpair[0] - 1) + limofpair[1], 'sum')
+                    print(limofpair[0] - 1, 'offset')
+                    if t >= ((limofpair[0] - 1) + limofpair[1]):
                         break
                     if t >= (limofpair[0] - 1):
+                        print(t, 't')
+                        print((limofpair[0] - 1) + limofpair[1])
                         # Post each quote from the file as an element of an unordered list.
                         self.wfile.write(bytes('<li><p>%s</p></i>' % cw, encoding = "utf-8"))
                 self.wfile.write(bytes('</ul>', encoding = "utf-8"))
         # Send tags to mark the end of the html body.
         self.wfile.write(bytes('</ol></form></body></html>', encoding = "utf-8"))
+        # Print the time. 
         print('time: ', time.time() - start_time)
           
 if __name__ == '__main__':       
